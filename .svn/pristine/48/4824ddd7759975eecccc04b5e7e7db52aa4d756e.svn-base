@@ -1,0 +1,108 @@
+
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { BackgroundService } from 'src/app/services/background.service';
+
+@Component({
+  selector: 'app-text-input',
+  templateUrl: './text-input.component.html',
+  styleUrls: ['./text-input.component.scss'],
+})
+export class TextInputComponent implements OnInit {
+  @Input() textinput: any;
+  @Input() frame_type: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+  autoPolulateText:any[] = [];
+  autoPolulateText1 = ['tte','ttr','ttw'];
+  current_page_parameter: any = {};
+  constructor(private globalObjects: GlobalObjectsService ,private backgroundservice:BackgroundService) {
+    this.backgroundservice.latitude
+   }
+
+  ngOnInit() {
+    
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    // if (this.textinput.item_default_value=='LATITUDE') {
+    //   this.textinput.value = this.backgroundservice.latitude ;
+    // }
+    // if (this.textinput.item_default_value=='LONGITUDE') {
+    //   this.textinput.value = this.backgroundservice.longitude ;
+    // }
+  }
+
+  onChange(onChange) {
+    let item_history = this.globalObjects.getLocallData("item_history");
+    let key = this.textinput.item_name;
+    if(item_history){
+
+      if(item_history[key]){
+        let data:any[] = item_history[key];
+        let item = data.filter(item=>{
+          if(this.textinput.value.toLowerCase() === item.toLowerCase()){
+            return item;
+          }
+        });
+        
+        if(this.textinput.value != ""  && this.textinput.value != null && item[0] == null || item[0] == ""){
+          data.push(this.textinput.value);
+        }
+        console.log("keyyy:", item_history[key]);
+        item_history[key] = data;
+        this.globalObjects.setDataLocally("item_history", item_history);
+      }
+      else{
+        let data:any[] = [];
+        if(this.textinput.value != ""  && this.textinput.value != null){
+          data.push(this.textinput.value);
+        }
+        item_history[key] = data;
+        this.globalObjects.setDataLocally("item_history", item_history);
+      }
+        
+    }else{
+      if(this.textinput.value != "" && this.textinput.value != null){
+        let itemHistory = {};
+        let data:any[] = [];
+        data.push(this.textinput.value);
+        itemHistory[key] = data;
+        this.globalObjects.setDataLocally("item_history", itemHistory);
+      }
+    }
+    
+      this.emitOnChange.emit(this.textinput)
+  }
+
+  autoPopulate(event){
+    let item_history = this.globalObjects.getLocallData("item_history");
+    let key = this.textinput.item_name;
+    if(item_history){
+
+      if(item_history[key]){
+        this.autoPolulateText = item_history[key];
+        this.autoPolulateText = this.autoPolulateText.filter(item=>{
+          if (item.toLowerCase().includes(event.target.value.toLowerCase())) {
+            return item;
+          }
+        })
+      }
+ 
+    }
+  }
+
+  getParsedJson(json) {
+    try {
+      if (json) {
+        return JSON.parse(json)
+      } else {
+        return {}
+      }
+    } catch (err) {
+      if (typeof json == 'object') {
+        return json;
+      } else {
+        return {}
+      }
+    }
+  }
+
+}

@@ -1,0 +1,26 @@
+import { Component, OnInit, Input, EventEmitter, Output } from '@angular/core';
+
+@Component({
+  selector: 'app-text-band',
+  templateUrl: './text-band.component.html',
+  styleUrls: ['./text-band.component.scss'],
+})
+export class TextBandComponent implements OnInit {
+  @Input() textband: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  constructor() { }
+
+  ngOnInit() {
+    console.log(this.textband);
+    if (this.textband.value) {
+      this.textband.value = this.textband.value.split("@");
+    } else {
+      this.textband.value = [];
+    }
+  }
+
+  itemClick(event) {
+    this.emitPass.emit(this.textband);
+  }
+
+}

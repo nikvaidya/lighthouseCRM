@@ -1,0 +1,60 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Events } from '@ionic/angular';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-frame-cart-summary-plain',
+  templateUrl: './frame-cart-summary-plain.component.html',
+  styleUrls: ['./frame-cart-summary-plain.component.scss'],
+})
+export class FrameCartSummaryPlainComponent implements OnInit {
+
+  @Input() frame: any = {};
+  @Input() wsdp: any = {};
+  @Input() wsdpcl: any = {};
+
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  
+  totalQty = 0;
+  totalAmt = 0;
+  tableRows = []
+  constructor(private events: Events, private globalObjects : GlobalObjectsService) {
+    this.events.subscribe("showSummary", () =>{
+      //console.log(this.frame)
+      this.summDetails();
+    })
+   }
+
+  ngOnInit() {
+    console.log(this.frame);
+    this.summDetails();
+  }
+
+  summDetails(){
+    this.totalQty = 0;
+    this.totalAmt = 0;
+    this.tableRows = [];
+    for(let row of this.globalObjects.cartSummaryPlain){
+      this.tableRows.push(row.cartRows)
+  }
+  this.frame.tableRows = this.tableRows;
+    for(let tabledata of this.tableRows){
+      for(let itemGroup of tabledata){
+        for(let row of itemGroup.Level5){
+          if(row.item_name == 'QTYORDER' && row.value > 0 && row.value != null){
+            this.totalQty = this.totalQty + row.value;
+          }
+          if(row.item_name == 'TOTAL' && row.value > 0 && row.value != null){
+            this.totalAmt = this.totalAmt + row.value;
+          }
+        }
+      }
+    }
+  }
+
+  itemClicked(event) {
+   
+    this.emitPass.emit(event);
+  }
+
+}

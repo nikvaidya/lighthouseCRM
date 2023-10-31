@@ -1,0 +1,54 @@
+.right-title{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: rgba(249, 249, 249, 0.7803921568627451);
+
+}
+.refresh-page-btn
+{
+   
+    ion-fab-button
+    {
+        width:45px;
+        height:45px;
+    } 
+}
+
+/* Custom Skeleton Line Height and Margin */
+.custom-skeleton ion-skeleton-text {
+    line-height: 13px;
+  }
+  
+  .custom-skeleton ion-skeleton-text:last-child {
+    margin-bottom: 5px;
+  }
+
+  #mydiv {
+    position: absolute;
+    z-index: 9;
+    background-color: #f1f1f1;
+    text-align: center;
+    border: 1px solid #d3d3d3;
+  }
+  
+  #mydivheader {
+    padding: 10px;
+    cursor: move;
+    z-index: 10;
+    background-color: #2196F3;
+    color: #fff;
+  }
+  ion-fab
+  {
+    bottom:0px;
+  }
+  ion-fab-list
+  {
+    bottom:0px;
+    top: unset;
+  }
+  .fab-gap
+  {
+    height:40px;
+  }

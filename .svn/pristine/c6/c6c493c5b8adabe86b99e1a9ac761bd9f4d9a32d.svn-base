@@ -1,0 +1,399 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start" *ngIf="isModal === 'Menu'">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-button slot="start" (click)="closePage()" fill="clear" icon-only start *ngIf="isModal == 'M'">
+      <ion-icon name="arrow-back" color="light"></ion-icon>
+    </ion-button>
+    <ion-button slot="start" (click)="popDismiss()" fill="clear" icon-only start *ngIf="isModal == 'P'">
+      <ion-icon name="close" color="light"></ion-icon>
+    </ion-button>
+    <ion-title *ngIf="object_mast && object_mast.Level2">
+      {{ object_mast.Level2[page_no].apps_page_name}}   
+      <!-- <h6 *ngIf="userDetails" style="margin-top: 0px; margin-bottom: 0px">({{userDetails.userName}})</h6> -->
+      <!-- {{ object_mast.Level2[page_no] ? object_mast.Level2[page_no]>0 : object_mast.Level2[page_no].apps_page_name }} -->
+    </ion-title>
+    <span class="right-title" *ngIf="object_mast && object_mast.Level2" slot="end">[{{object_mast.Level2[page_no].object_code}}]
+    </span>
+    <!-- apps_page_no -->
+
+    <ion-buttons slot="end" fill="clear" icon-only (click)="openNotification()" *ngIf="toggleNotification">
+      <ion-icon name="notifications"></ion-icon>
+      <ion-badge *ngIf="notificationCount > 0" class="position-absolute header-count" color="danger">
+        {{notificationCount}}</ion-badge>
+      <!-- CARD-NOTIFICATION -->
+    </ion-buttons>
+  </ion-toolbar>
+
+</ion-header>
+
+<ion-content padding>
+
+
+  <ion-fab vertical="bottom" horizontal="end" edge slot="fixed" #fab (cdkDragEnded)="fabDrop()" cdkDrag
+    cdkDragBoundary="ion-header" *ngIf="toggleFab">
+    <ion-fab-button size="small" color="medium">
+      <!-- <ion-icon size="large" name="radio-button-on"></ion-icon> -->
+      <img class="rounds" src="../../../assets/icon.png" alt="">
+    </ion-fab-button>
+    <ion-fab-list>
+      <ion-fab-button color="light" (click)="switchAppKey();">
+        <ion-icon name="exit"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="refreshPage()" color="light">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="light">
+        <ion-icon name="logo-vimeo"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+ 
+  <!-- <ion-input clearInput value="clear me dsfdrgrthrth"></ion-input> -->
+
+  <!-- <ion-button (click)="openMultiTabpage()">openMultiTabpage</ion-button> -->
+  <!-- <app-frame-percentage-circle></app-frame-percentage-circle> -->
+  <div class="clearfix"></div>
+<!--<app-frame-drag-drop></app-frame-drag-drop>-->
+<!--<app-image-menu></app-image-menu>
+ <app-icon-menu></app-icon-menu>
+ <app-simple-kpi></app-simple-kpi>-->
+
+  <!-- <app-frame-drag-drop></app-frame-drag-drop> -->
+
+   <!-- <app-simple-kpi></app-simple-kpi> -->
+  
+
+
+<!-- <app-frame-footer></app-frame-footer> -->
+
+
+  <!-- <ion-slides class="image-slider">
+
+  <ion-slide *ngFor = "let slideItem of imgUrl">
+    <img
+       [src]="'https://firebasestorage.googleapis.com/v0/b/photo-cbbee.appspot.com/o/'+slideItem.name+'?alt=media'" />
+  </ion-slide>
+  </ion-slides>  -->
+
+  <!-- [src]="'https://firebasestorage.googleapis.com/v0/b/testimageload.appspot.com/o/'+slideItem.name+'?alt=media'" /> -->
+  <!-- 
+  https://firebasestorage.googleapis.com/v0/b/photo-cbbee.appspot.com/o/Chrysanthemum.jpg?alt=media
+  https://firebasestorage.googleapis.com/v0/b/photo-cbbee.appspot.com/o/Desert.jpg?alt=media -->
+  <!-- <div class="table-responsive">
+    <table class="entry-table">
+      <thead >
+        <tr>
+          <th>Sr. No</th>
+        <th>Item Name</th>
+        <th>Number</th>
+        <th>Text</th>
+        <th>LOV</th>
+        <th>Select</th>
+        <th>Date</th>
+      </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Alluminium</td>
+          <td>
+            <div class="table-input-container">
+              <ion-input class="table-input text-right" type="Number"></ion-input>
+            </div>
+          </td>
+          <td>
+            <div class="table-input-container">
+              <ion-input class="table-input"  type="text"></ion-input>
+            </div>
+          </td>
+          <td>
+            <div class="table-input-container">
+            <div class="input-group table-lov-input">
+              <ion-input class="table-input" required type="text"></ion-input>
+              <div class="input-group-append">
+                <button class="lov-btn" ion-button icon-only small>
+                  <ion-icon name="ios-arrow-forward"></ion-icon>
+                </button>
+              </div>
+            </div>
+            </div>
+          </td>
+          <td>
+              <div class="table-input-container">
+                <ion-select class="table-input" interface="popover">
+                  <ion-select-option value="cat">Cat</ion-select-option>
+                  <ion-select-option value="dog">Dog</ion-select-option>
+                </ion-select>
+              </div>
+          <td>
+              <div class="table-input-container">
+                <div class="input-group table-lov-input">
+                <ion-datetime class="table-input"></ion-datetime>
+                <div class="input-group-append">
+                  <button class="lov-btn" ion-button icon-only small>
+                    <ion-icon name="calendar"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      
+          
+    </table>
+  </div> -->
+
+  <div *ngIf="object_mast && object_mast.Level2">
+    <div *ngFor="let frame of object_mast.Level2[page_no].Level3">
+      <div [ngSwitch]="frame.apps_frame_type">
+        <div *ngSwitchCase="'CANVAS'">
+          <app-frame-canvas [frame]="frame" [wsdp]="wsdp" [sessionObj]="sessionObj" [wscp_send_input]="wscp" [sessionObj]="sessionObj"
+            [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-canvas>
+        </div>
+        <div *ngSwitchCase="'CANVAS-KPI'">
+          <app-frame-canvas [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [sessionObj]="sessionObj"
+            [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-canvas>
+        </div>
+        <div *ngSwitchCase="'APPROVAL-TAB'">
+          <app-approval-tab [frame]="frame" [wsdp]="wsdp" [wscp]="wscp" (emitPass)="itemClicked($event)">
+          </app-approval-tab>
+        </div>
+        <div *ngSwitchCase="'TABLE'">
+          <app-frame-table [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" [sessionObj]="sessionObj" [wscp_send_input]="wscp" (emitPass)="itemClicked($event)">
+          </app-frame-table>
+        </div>
+        <div *ngSwitchCase="'CARD'">
+          <app-frame-card [frame]="frame" [wsdp]="wsdp" [sessionObj]="sessionObj" [wscp_send_input]="wscp" [wsdpcl]="wsdpcl"
+            (emitPass)="itemClicked($event)">
+          </app-frame-card>
+        </div>
+        <div *ngSwitchCase="'PROFILE-CARD'">
+          <app-frame-user-profile [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" [wscp_send_input]="wscp" (emitPass)="itemClicked($event)">
+          </app-frame-user-profile>
+        </div>
+        <div *ngSwitchCase="'SLIDING-CARD'">
+          <app-frame-card-slider [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-card-slider>
+        </div>
+        <div *ngSwitchCase="'CANVAS-BORDERED'">
+          <app-frame-summ-card [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-summ-card>
+        </div>
+
+        <!-- <div *ngSwitchCase="'TGRAPH'">
+          <app-frame-graph [tabledata]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)"></app-frame-graph>
+        </div> -->
+        <div *ngSwitchCase="'GRAPH'">
+          <app-frame-dashboard-graph [frame]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)">
+          </app-frame-dashboard-graph>
+        </div>
+
+        <div *ngSwitchCase="'TABLE_KPI'">
+          <app-frame-table-kpi [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-table-kpi>
+        </div>
+
+
+        <div *ngSwitchCase="'IMG_SLIDER'">
+          <app-frame-img-slider [frame]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)">
+          </app-frame-img-slider>
+        </div>
+        <div *ngSwitchCase="'TERMS'">
+          <app-frame-terms-conditions [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp"
+            (emitPass)="itemClicked($event)" [sessionObj]="sessionObj"></app-frame-terms-conditions>
+        </div>
+        <div *ngSwitchCase="'ADDON'">
+          <app-frame-addon [sessionObj]="sessionObj" [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp"
+            (emitPass)="itemClicked($event)">
+          </app-frame-addon>
+        </div>
+        <div *ngSwitchCase="'COLLAPS'">
+          <app-frame-collaps [frame]="frame" [wscp]="wscp" [wsdp]="wsdp" [wsdpcl]="wsdpcl"
+            (emitPass)="itemClicked($event)">
+          </app-frame-collaps>
+        </div>
+        <div *ngSwitchCase="'CALENDER'">
+          <app-frame-calender [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-calender>
+        </div>
+        <div *ngSwitchCase="'NEWCALENDER'">
+          <app-frame-newcalender [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)"></app-frame-newcalender>
+        </div>
+        <!-- <div *ngSwitchCase="'TASKM'">
+          <app-frame-task-management [frame]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)">
+          </app-frame-task-management>
+        </div> -->
+        <div *ngSwitchCase="'ENTRY_TABLE'">
+          <app-frame-entry-table [frame]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)">
+          </app-frame-entry-table>
+        </div>
+        <div *ngSwitchCase="'ORDER-ENTRY'">
+          <app-frame-order-entry [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-order-entry>
+        </div>
+        
+        <div *ngSwitchCase="'CHAT-LIVE'">
+          <app-frame-chat-dashboard [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [sessionObj]="sessionObj"
+            (emitPass)="itemClicked($event)"></app-frame-chat-dashboard>
+        </div>
+        <div *ngSwitchCase="'CANVAS-FILTER'">
+          <app-frame-canvas [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [sessionObj]="sessionObj"
+            (emitPass)="itemClicked($event)">
+          </app-frame-canvas>
+        </div>
+        <div *ngSwitchCase="'MAP'">
+          <app-frame-map [frame]="frame" [wsdp]="wsdp" [wscp_send_input]="wscp" [sessionObj]="sessionObj"
+            (emitPass)="itemClicked($event)"></app-frame-map>
+        </div>
+        <div *ngSwitchCase="'TIMELINE-CARD'">
+          <app-frame-timeline-card [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-timeline-card>
+        </div>
+        <div *ngSwitchCase="'LOC-TRACK-CARD'">
+            <app-frame-location-tracking-card [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+            </app-frame-location-tracking-card>
+        </div>
+        <div *ngSwitchCase="'ORDER ENTRY'">
+              <app-frame-add-to-cart [frame]="frame" [wsdp]="wsdp" (emitPass)="itemClicked($event)"></app-frame-add-to-cart>
+        </div>
+        <div *ngSwitchCase="'PLAIN-KPI'">
+          <app-frame-plain-kpi [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+          </app-frame-plain-kpi>
+        </div>
+
+        <div *ngSwitchCase="'SUMMARY_CARD'">
+            <app-frame-summary-card [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+            </app-frame-summary-card>
+          </div>
+          <div *ngSwitchCase="'SUMMARY_TABLE'">
+              <app-frame-summary-card-detail [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+              </app-frame-summary-card-detail>
+            </div>
+
+      <div *ngSwitchCase="'CART-SUMMARY-PLAIN'">
+
+          <app-frame-cart-summary-plain [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+            </app-frame-cart-summary-plain>
+      </div>
+      <div *ngSwitchCase="'CARTD'">
+      <app-frame-cart-summary [cartdata]="cartdata" [wsdp]="wsdp" [wscp_send_input]="wscp" [wsdpcl]="wsdpcl"
+    [frame]="frame"></app-frame-cart-summary>
+      </div>
+        <!--  <div *ngSwitchDefault>
+          <app-frame-canvas (itemClicked)="itemClicked($event)" [frame]="frame"> </app-frame-canvas>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="center" *ngIf="!object_mast">
+
+    <div class="text-center">
+      <img src="../../../assets/dot.gif" width="20%">
+    </div>
+
+  </div>
+<p>
+  {{networkParams}}
+</p>
+
+  <!-- <div>
+    <ion-button class="icon-btn"  (click)="opentoast()">fcm send
+      
+    </ion-button>
+  </div> -->
+
+  <!-- <app-sliding-list></app-sliding-list> -->
+
+  <!-- <div class="fab-gap">
+  </div> -->
+
+
+
+
+  <!-- 
+  <ion-fab class="refresh-page-btn" vertical="bottom" size="small" horizontal="end" slot="fixed">
+    <ion-fab-button>
+      <ion-icon name="refresh" (click)="ngOnInit()"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>  -->
+
+
+  <!-- Skeleton screen -->
+  <!-- <div *ngIf="!object_mast && notificationCount > 0">
+    <div class="ion-padding custom-skeleton">
+      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      <ion-skeleton-text animated></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 88%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+    </div>
+
+    <ion-list>
+      <ion-list-header>
+        <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+      </ion-list-header>
+      <ion-item>
+        <ion-avatar slot="start">
+          <ion-skeleton-text animated></ion-skeleton-text>
+        </ion-avatar>
+        <ion-label>
+          <h3>
+            <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+          </h3>
+          <p>
+            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+          </p>
+          <p>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+          </p>
+        </ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-thumbnail slot="start">
+          <ion-skeleton-text animated></ion-skeleton-text>
+        </ion-thumbnail>
+        <ion-label>
+          <h3>
+            <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+          </h3>
+          <p>
+            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+          </p>
+          <p>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+          </p>
+        </ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-skeleton-text animated style="width: 27px; height: 27px" slot="start"></ion-skeleton-text>
+        <ion-label>
+          <h3>
+            <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+          </h3>
+          <p>
+            <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+          </p>
+          <p>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+          </p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div> -->
+
+  <!-- <div *ngIf="!object_mast || notificationCount > 0">
+    <div class="text-center">
+        <img src = "../../../assets/dot.gif" width="30%">
+      </div>
+  </div>    -->
+
+
+</ion-content>

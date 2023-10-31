@@ -1,0 +1,27 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-frame-img-slider',
+  templateUrl: './frame-img-slider.component.html',
+  styleUrls: ['./frame-img-slider.component.scss'],
+})
+export class FrameImgSliderComponent implements OnInit {
+  @Input() frame: any = {};
+  @Input() wsdp: any = {};
+  @Input() wscp_send_input: any = {};
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+
+  userDetails: any;
+
+  constructor(private globalObjects: GlobalObjectsService, ) {
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+  }
+
+  ngOnInit() {   }
+
+  itemClicked(event, i) {
+    this.emitPass.emit(event);
+  }
+
+}

@@ -1,0 +1,44 @@
+ <!-- <ion-header>
+  <ion-toolbar>
+    <ion-title>forgot-password</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+</ion-content>   -->
+<ion-content class="theme-maroon">
+<ion-content class="login-ion-content page-forgot-password">
+  
+  <ion-grid class="login-outer-padding" >
+      <ion-row class="login-outer-padding" >
+          <div class="login-outer" [style.height]="shouldHeight">
+              <ion-grid>
+                  <ion-row>
+                          <ion-col padding class="forgot-password-heading">
+                      <button  class="frgtHeading">
+                          <ion-icon name="arrow-back"></ion-icon>
+                      </button>
+                      <h4 class="d-inline-block">FORGOT PASSWORD</h4>
+                      </ion-col>
+                  </ion-row>
+              </ion-grid>
+              <form  class="loginForm frgtForm">
+                  <ion-list>
+                      <ion-item>
+                          <ion-label floating>Email</ion-label>
+                          <ion-input
+                              type="email"></ion-input>
+                      </ion-item>
+                  </ion-list>
+                  
+                  <ion-button  shape="round"  color="secondary" class="global-btn button-round button-round-md reset-btn" type="submit">
+                      Reset Password
+                  </ion-button>
+           
+              </form>
+          </div>
+      </ion-row>
+  </ion-grid>
+</ion-content> 
+</ion-content>

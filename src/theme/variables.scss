@@ -1,8 +1,11 @@
+
+
 // Ionic Variables and Theming. For more info, please see:
 // http://ionicframework.com/docs/theming/
 
 /** Ionic CSS Variables **/
 :root {
+
   /** primary **/
   --ion-color-primary: #3880ff;
   --ion-color-primary-rgb: 56, 128, 255;
@@ -36,7 +39,7 @@
   --ion-color-success-tint: #28e070;
 
   /** warning **/
-  --ion-color-warning: #ffce00;
+  --ion-color-warning: #FF9800;
   --ion-color-warning-rgb: 255, 206, 0;
   --ion-color-warning-contrast: #ffffff;
   --ion-color-warning-contrast-rgb: 255, 255, 255;
@@ -74,4 +77,78 @@
   --ion-color-light-contrast-rgb: 0, 0, 0;
   --ion-color-light-shade: #d7d8da;
   --ion-color-light-tint: #f5f6f9;
+  
+  .theme-maroon
+    {
+     --ion-color-primary: #BF0A0A;
+    --ion-color-secondary:#848484;
+    --ion-color-primary-rgb:179,170,170;
+    
+    ion-button {
+      
+      --ion-color-primary: #d78306;
+      --ion-color-medium: #848484;
+   
 }
+ion-button[color="primary"]
+{
+  button
+  {
+    color:#000;
+  }
+  
+}
+  }
+  .theme-grey
+  {
+    --ion-color-primary:linear-gradient(to bottom,#e2e2e2,#e2e2e2,#c5c5c5);
+    --ion-color-secondary:#4e4e4e;
+    --ion-color-primary-rgb:127,127,127;
+    ion-button {
+      --ion-color-primary: #4e4e4e !important;
+      --color: #ffffff;
+  }
+  
+  .button-outline
+  {
+
+    --color:#4e4e4e !important;
+   }
+  }
+  .theme-blue{
+    --ion-color-primary: #4990e2;
+    --ion-color-secondary:#98a2ae;
+  }
+  .theme-edit{
+    --ion-color-primary: #4990e2;
+    --ion-color-secondary:#98a2ae;
+  }
+  .theme-green
+  {
+    --ion-color-primary: #00afad;
+    --ion-color-secondary:#A4A6A8;
+    --ion-color-primary-rgb: 174,183,183;
+
+  }
+  .theme-dark
+  {
+    --ion-color-primary: #1f232d;
+    --ion-color-secondary:#c47920;
+    --ion-color-primary-rgb: 192,179,163;
+
+  }
+  ion-popover {
+    --width: 310px;
+  }
+}
+
+//Theme
+
+@import "theme-blue";
+@import "theme-green";
+@import "theme-dark";
+@import "theme-maroon";
+@import "theme-grey";
+@import "theme-edit";
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

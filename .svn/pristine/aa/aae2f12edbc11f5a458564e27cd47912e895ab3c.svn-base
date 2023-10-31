@@ -1,0 +1,23 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-menu-list',
+  templateUrl: './menu-list.component.html',
+  styleUrls: ['./menu-list.component.scss'],
+})
+export class MenuListComponent implements OnInit {
+  @Input() menulist: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  constructor(public globalObjects: GlobalObjectsService) { }
+
+  ngOnInit() {
+    // console.log(this.menulist);
+   }
+
+  buttonClick(event) {
+    console.log('vijay buttonClick this.menulist.prompt_name ', this.menulist.prompt_name);
+    this.emitPass.emit(this.menulist);
+  }
+
+}

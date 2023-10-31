@@ -1,0 +1,60 @@
+<!-- <ion-calendar [(ngModel)]="date"
+ [format]="'YYYY-MM-DD'">
+</ion-calendar> -->
+<!-- <ion-button (click)="datedata()"></ion-button> -->
+<div>
+ <ion-col col-12  *ngIf="loadCal">
+    <h1 class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1>
+  </ion-col>
+<div class="calender-div" *ngIf="loadCal">
+  <ion-calendar #calendar [(ngModel)]="currentEvents"  [options]="optionsMulti" (ngModelChange)="onDaySelect($event)"
+    [format]="'YYYY-MM-DD'">
+  </ion-calendar>
+</div>
+</div>
+<!-- 
+
+<div>
+  <ion-card>
+    <ion-card-header tappable (click)="collapseCard = !collapseCard">
+      <ion-card-title>ADD EVENT</ion-card-title>
+    </ion-card-header>
+    <ion-card-content *ngIf="!collapseCard">
+
+      <ion-item>
+        <ion-input type="text" placeholder="Title" [(ngModel)]="event.title"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input type="text" placeholder="Description" [(ngModel)]="event.desc"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Select date</ion-label>
+        <ion-datetime displayFormat="MM/DD/YYYY" [(ngModel)]="event.startTime" [min]="minDate"></ion-datetime>
+      </ion-item> -->
+      <!-- <ion-item>
+                    <ion-label>End</ion-label>
+                    <ion-datetime displayFormat="MM/DD/YYYY HH:mm" pickerFormat="MMM D:HH:mm" [(ngModel)]="event.endTime" [min]="minDate"></ion-datetime>
+                  </ion-item> -->
+      <!-- <ion-item>
+                    <ion-label>All Day?</ion-label>
+                    <ion-checkbox [(ngModel)]="event.allDay"></ion-checkbox>
+                  </ion-item> -->
+
+
+
+
+
+
+
+                  
+      <!-- <ion-button fill="outline" expand="block" (click)="addEvent(event)" [disabled]="event.title == ''">Add Event
+      </ion-button>
+
+    </ion-card-content>
+  </ion-card>
+</div>-->
+<div *ngIf="this.cardFlag">
+  <app-frame-card [hidden]="flag" [frame]="frame" [wsdp]="wsdp" [wsdpcl]="wsdpcl" (emitPass)="itemClicked($event)">
+  </app-frame-card>
+</div>
+ 

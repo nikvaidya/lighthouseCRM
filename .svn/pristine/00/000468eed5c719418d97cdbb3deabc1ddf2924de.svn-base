@@ -1,0 +1,315 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Camera, CameraOptions } from '@ionic-native/camera/ngx';
+import { GlobalObjectsService } from './global-objects.service';
+import { File } from '@ionic-native/file/ngx';
+import { MediaCapture, MediaFile, CaptureVideoOptions } from '@ionic-native/media-capture/ngx';
+import { PouchDBService } from './pouch-db.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  base_url = "";
+  httpHeaders: any;
+
+  constructor(public http: HttpClient, private camera: Camera, private pouchDBService: PouchDBService,
+    public globalObjects: GlobalObjectsService, private file: File, private mediaCapture: MediaCapture) {
+
+    // this.base_url = "http://192.168.100.195:8888/lhsws/MC/192.168.100.173/1521/LWEBTEST/LWEBTEST/ORA10G/"
+    // this.base_url="http://203.193.167.118:8888/DynamicAppWSV3/webService/MC/192.168.100.173/1521/CFLTEST/CFLTEST/"
+
+  }
+
+
+  getData(url) {
+    return new Promise((resolve, reject) => {
+       var l_url = this.globalObjects.getScopeUrl() + url;
+     // var l_url = "http://192.168.100.161:8888/lhsws/LV/192.168.100.173/1521/VICCOERP/VICCOERP/ORA10G/" + url;
+      console.log(l_url);
+      this.http.get(l_url)
+        .subscribe(data => {
+          resolve(data);
+        }, err => {
+          reject(err);
+        })
+    })
+  }
+
+  postData(url, data) {
+    var objToday = new Date(),
+	weekday = new Array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'),
+	dayOfWeek = weekday[objToday.getDay()],
+	// domEnder = function() { var a = objToday; if (/1/.test(parseInt((a + "").charAt(0)))) return "th"; a = parseInt((a + "").charAt(1)); return 1 == a ? "st" : 2 == a ? "nd" : 3 == a ? "rd" : "th" }(),
+	// dayOfMonth = today + ( objToday.getDate() < 10) ? '0' + objToday.getDate() + domEnder : objToday.getDate() + domEnder,
+	months = new Array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
+	curMonth = months[objToday.getMonth()],
+	curYear = objToday.getFullYear(),
+	curHour = objToday.getHours() > 12 ? objToday.getHours() - 12 : (objToday.getHours() < 10 ? "0" + objToday.getHours() : objToday.getHours()),
+	curMinute = objToday.getMinutes() < 10 ? "0" + objToday.getMinutes() : objToday.getMinutes(),
+	curSeconds = objToday.getSeconds() < 10 ? "0" + objToday.getSeconds() : objToday.getSeconds(),
+	curMeridiem = objToday.getHours() > 12 ? "PM" : "AM";
+var today = curHour + ":" + curMinute + "." + curSeconds + curMeridiem + " " + dayOfWeek + " " + " of " + curMonth + ", " + curYear;
+
+
+    console.log("chaitenya >>>>   "+today);
+    if (data.wscp) {
+      if (data.wscp.service_type) {
+        return new Promise((resolve, reject) => {
+          var l_url = this.globalObjects.getScopeUrl() + url;
+          this.http.post(l_url, data)
+            .subscribe(data => {
+              resolve(data);
+            }, err => {
+              reject(err);
+            })
+        })
+      }
+      else {
+        return new Promise((resolve, reject) => {
+          resolve(data);
+        })
+      }
+    } else {
+      return new Promise((resolve, reject) => {
+        var l_url = this.globalObjects.getScopeUrl() + url;
+        this.http.post(l_url, data)
+          .subscribe(data => {
+            resolve(data);
+          }, err => {
+            reject(err);
+          })
+      })
+    }
+
+
+  
+
+  }
+
+  takePhoto(column_name, flag) {
+    return new Promise((resolve, reject) => {
+      var sourceType: any;
+      if (flag == "PHOTOLIBRARY") {
+        sourceType = this.camera.PictureSourceType.PHOTOLIBRARY;
+      } else {
+        sourceType = this.camera.PictureSourceType.CAMERA;
+      }
+      const options: CameraOptions = {
+        quality: 50,
+        sourceType: sourceType,
+        destinationType: this.camera.DestinationType.DATA_URL,
+        encodingType: this.camera.EncodingType.JPEG,
+        mediaType: this.camera.MediaType.PICTURE,
+        targetWidth: 450,
+        targetHeight: 450,
+        saveToPhotoAlbum: false,
+        correctOrientation: true
+      };
+      this.camera.getPicture(options).then(
+        imageData => {
+          // alert(imageData);
+          resolve(imageData);
+        })
+      // resolve("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")
+    })
+  }
+
+  setmultiLOVvalue(fields, lov) {
+    return new Promise((resolve, reject) => {
+      var lovCount = 0;
+      for (let obj of fields) {
+        obj.value = '';
+        obj.codeOfValue = ''
+        for (let obj1 of lov) {
+          if (obj1.checked) {
+            if (obj.value == '' || obj.value == null) {
+              obj.value = obj1.name;
+              obj.codeOfValue = obj1.code;
+            } else {
+              obj.value = obj.value + ", " + obj1.name;
+              obj.codeOfValue = obj.codeOfValue + ", " + obj1.code;
+            }
+            lovCount = lovCount + 1;
+          }
+        }
+        obj.itemSelected = lovCount;
+        resolve(obj.value);
+      }
+    })
+  }
+
+  takeVideo() {
+    return new Promise((resolve, reject) => {
+      let directoryPath = "";
+      let platformVal = this.globalObjects.getPlatformValue();
+      if (platformVal) {
+        if (platformVal == 'ios') {
+          directoryPath = this.file.documentsDirectory;
+        } else {
+          directoryPath = this.file.externalRootDirectory;
+        }
+      } else {
+        directoryPath = this.file.externalRootDirectory;
+      }
+      let options: CaptureVideoOptions = {
+        limit: 1,
+        quality: 0,
+        duration: 20
+      }
+      this.mediaCapture.captureVideo(options).then((res: MediaFile[]) => {
+        let capturedFile = res[0];
+        let fileName = capturedFile.name;
+        let dir = capturedFile['localURL'].split('/');
+        dir.pop();
+        let fromDirectory = dir.join('/');
+        let toDirectory = directoryPath + "LHSAPP";
+        this.file.createDir(directoryPath, "LHSAPP", false).then(result => {
+          var pathval = toDirectory + "/";
+          this.file.moveFile(fromDirectory, fileName, toDirectory, fileName).then(result => {
+            this.file.readAsDataURL(pathval, fileName).then(result => {
+              resolve(result);
+            }, (err) => {
+              alert(err);
+            });
+          });
+        }, (err) => {
+          var pathval = toDirectory + "/";
+          this.file.moveFile(fromDirectory, fileName, toDirectory, fileName).then(result => {
+            this.file.readAsDataURL(pathval, fileName).then(result => {
+              resolve(result);
+            }, (err) => {
+            });
+          });
+        })
+      })
+    })
+  }
+  // moveFiles(path, fileName, newPath, newFileName, column_name) {
+  //   var pathval = newPath + "/";
+  //   this.file.moveFile(path, fileName, newPath, newFileName).then(result => {
+  //     this.file.readAsDataURL(pathval, fileName).then(result => {
+  //         resolve(result);
+
+  //     }, (err) => {
+  //   });
+  // }
+
+  // setVideoData(pathval, fileName, column_name) {
+  //   this.file.readAsDataURL(pathval, fileName).then(result => {
+  //     for (let obj of fields) {
+  //       if (obj.column_name == column_name) {
+  //         obj.value = result;
+  //       }
+  //       if (obj.dependent_row == column_name) { //Check for control dependency 
+  //         obj.excel_upload = 0;
+  //         obj.value = "";
+  //         for (let obj1 of fields) {
+  //           if (obj.column_name == obj1.dependent_row) {
+  //             obj1.excel_upload = 1; /*variable "excel_upload" is used from web service generated JSON,to disable dependent controls */
+  //             obj1.value = "";
+  //           }
+  //         }
+  //       } else { }
+  //     }
+  //   }, (err) => {
+  //   });
+  // }
+
+
+
+  FCMlink() {
+
+    let AUTH_KEY_FCM = "AAAASDnknak:APA91bH7qMCkNOuqPSUR2ldONtE6c6WMourBKX1dMjh4WtiSL1HP9YPNVTzl9pM-KnM1ocZgkcRbc0zd5rx-bFEIQZ2n-jEAMI-u-oIEr56szE_9hLIDxQsw-a7FImqe8L--qCt2lZ4U";
+    let mobtoken = "fVlp_8vg57I:APA91bHBFkF-Xk3uva1zZGTR9gJeBAuM_ynb-utMq6kKnE6hflzlcKqgYxL4kD6jjxDKBv9K7i1t3FZ9Cy1eeKBrl-M9sjBtvXeCNNWvalott6cMVSun1b5B7OfhrBa87Yc8wyUjhKEG";
+    let url = 'https://fcm.googleapis.com/fcm/send';
+    let body =
+    {
+      "notification": {
+        "title": "Notification title",
+        "body": "Notification body",
+        "sound": "default",
+        "click_action": "FCM_PLUGIN_ACTIVITY",
+        "icon": "fcm_push_icon"
+      },
+      "data": {
+        "hello": "This is a Firebase Cloud Messagin  hbhj g Device Gr new v Message!",
+      },
+      "to": mobtoken
+    };
+    
+    this.httpHeaders = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': 'key=' + AUTH_KEY_FCM
+    });
+
+    this.http.post(url, body, this.httpHeaders)
+      .subscribe(data => {
+        console.log("fcm data", data);
+      }, error => {
+        console.log(error);
+      });
+  }
+
+  saveEntryToLocalDB(nextPageInfo) {
+    return new Promise((resolve, reject) => {
+      var formData: any = {};
+      var object_code = nextPageInfo.wscp.object_code;
+      // var _id = object_code + "_localEntryList";
+      var _id = object_code;
+      this.pouchDBService.getObject(_id).then(data => {
+        let resData: any = data;
+        formData = resData;
+        formData._id = resData._id;
+        if (formData.entryList) {
+          formData.entryList.push(nextPageInfo);
+        } else {
+          formData.entryList = [];
+          formData.entryList.push(nextPageInfo);
+        }
+        formData.count = formData.entryList.length;
+        this.pouchDBService.put(_id, formData);
+        resolve("success");
+      }, err => {
+        formData._id = _id;
+        formData.entryList = [];
+        formData.entryList.push(nextPageInfo);
+        formData.count = formData.entryList.length;
+        this.pouchDBService.put(_id, formData);
+        resolve("success");
+      })
+    })
+  }
+
+  deleteEntry(nextPageInfo, index) {
+    return new Promise((resolve, reject) => {
+      var formData: any = {};
+      var object_code = nextPageInfo.wscp.object_code;
+      var _id = object_code;
+      this.pouchDBService.getObject(_id).then(data => {
+        formData = data;
+        formData.entryList.splice(index, 1);
+        formData.count = formData.entryList.length;
+        this.pouchDBService.put(_id, formData);
+        resolve("sucess");
+      }, err => { reject('error') })
+    })
+  }
+
+  deleteAllEntry(nextPageInfo) {
+    return new Promise((resolve, reject) => {
+      var formData: any = {};
+      var object_code = nextPageInfo.wscp.object_code;
+      var _id = object_code;
+      this.pouchDBService.getObject(_id).then(data => {
+        formData = data;
+        formData.entryList = [];
+        formData.count = formData.entryList.length;
+        this.pouchDBService.put(_id, formData);
+        resolve("sucess");
+        alert("save D");
+      }, err => { reject('error') })
+    })
+  }
+
+}

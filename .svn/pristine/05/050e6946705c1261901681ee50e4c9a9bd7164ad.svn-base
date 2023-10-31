@@ -1,0 +1,672 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { DataService } from 'src/app/services/data.service';
+import { LoadingController } from '@ionic/angular';
+import { NewsScrollComponent } from '../../items/item-display/news-scroll/news-scroll.component';
+
+
+@Component({
+  selector: 'app-frame-canvas',
+  templateUrl: './frame-canvas.component.html',
+  styleUrls: ['./frame-canvas.component.scss'],
+})
+export class FrameCanvasComponent implements OnInit {
+
+
+  @Input() frame: any = {};
+  @Input() wsdp: any = {};
+  @Input() wscp_send_input: any = {};
+  @Input() wsdpcl: any = {};
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  @Input() sessionObj: any = {};
+  userDetails: any;
+  showFrame: boolean = false;
+  item_slno_count: number = 1;
+  current_page_parameter: any = {};
+  wscp: any = {};
+  callingObjectArr: any = [];
+  tableData: any;
+  colSize:any = [];
+
+  constructor(private globalObjects: GlobalObjectsService, private dataService: DataService, public loadingController: LoadingController) {
+
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+  }
+  ngOnInit() {
+    console.log("previous wsdp",this.wsdp)
+    console.log("from frame", this.frame);
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+
+    for (let itemGroup of this.frame.Level4) {
+      itemGroup.groupCol = [];
+      if (itemGroup.design_control_type) {
+        itemGroup.groupCol = itemGroup.design_control_type.split('-');
+        this.colSize = itemGroup.groupCol;
+      }
+      
+    }
+
+    this.frame.tableRows = [];
+    this.frame.tableRows[0] = JSON.parse(JSON.stringify(this.frame.Level4));
+    this.getData();
+  }
+
+
+  getData() {
+
+    let wscp: any = {};
+    //wscp.service_type = "get_populate_data";
+    // if (this.frame.on_frame_load_str) {
+    wscp.service_type = this.frame.on_frame_load_str;
+    wscp.from_row = String(1);
+    wscp.to_row = String(10);
+    wscp.apps_page_frame_seqid = this.frame.apps_page_frame_seqid;
+    wscp.apps_working_mode = this.wscp_send_input.apps_working_mode;
+    wscp.item_sub_type = this.wscp_send_input.item_sub_type;
+    this.wscp = wscp;
+    if (this.sessionObj) {
+      for (var key in this.sessionObj) {
+        wscp[key] = this.sessionObj[key];
+      }
+    }
+    var data = {
+      "wslp": this.userDetails,
+      "wscp": wscp,
+      "wsdp": this.wsdp,
+      "wsdpcl": this.wsdpcl
+    }
+
+    let l_url = "S2U";
+    this.dataService.postData(l_url, data).then(res => {
+
+      let data: any = res;
+      if (data.responseStatus == "success") {
+        let tableRows = [];
+        let objData = this.globalObjects.setPageInfo(data.responseData);
+
+        // For Getting *CALLING_OBJECT_CODE* from Frame //
+        this.callingObjectArr = this.globalObjects.getCallingObjectCodeArr(objData.Level1);
+        // For Getting *CALLING_OBJECT_CODE* from Frame //
+
+        let tableData = objData.Level1;
+        this.tableData = tableData;
+        let itemData: any;
+
+        if (this.frame.apps_frame_type == 'CANVAS-KPI') {
+          this.getDataCanvasKpi(tableData);
+        } else {
+
+          let tableKey = [];
+          if (tableData.length > 0) {
+            tableKey = Object.keys(tableData[0]);
+          }
+          for (let table of tableData) {
+
+            let frameLevel4 = JSON.parse(JSON.stringify(this.frame.Level4))
+            for (let itemGroup of frameLevel4) {
+              for (let item of itemGroup.Level5) {
+                for (let key of tableKey) {
+                  if ((item.item_name) && (item.item_name.toUpperCase() == key.toUpperCase())) {
+                    item.value = table[key]
+                  }
+                }
+              }
+            }
+            tableRows.push(frameLevel4);
+
+          }
+
+          this.frame.tableRows = tableRows;
+          if(tableData.length<=0){
+          
+            this.frame.tableRows[0]= JSON.parse(JSON.stringify(this.frame.Level4));
+          }
+          console.log("Frame Canvas Data", this.frame)
+        }
+      }
+     
+      this.showFrame = true;
+    }).catch(err => {
+      this.showFrame = true;
+      // this.globalObjects.hideLoading();
+      this.globalObjects.presentToast("1.5 Something went wrong please try again later!");
+      console.log(err);
+    })
+    // }
+  
+  }
+
+  getDataCanvasKpi(tableData) {
+    let itemData: any;
+    let tableRows = [];
+
+    for (let itemGrp of this.frame.Level4) {
+      for (let item of itemGrp.Level5) {
+        if (item.item_sub_type == 'KPI_PROMPT') {
+          itemData = itemGrp;
+        }
+      }
+    }
+
+    let tableKey = [];
+    if (tableData.length > 0) {
+      tableKey = Object.keys(tableData[0]);
+    }
+    for (let table of tableData) {
+      let kpiValue;
+      let kpiItem = itemData.Level5[0];
+
+      let frameLevel4 = JSON.parse(JSON.stringify(this.frame.Level4))
+      for (let itemGroup of frameLevel4) {
+        for (let item of itemGroup.Level5) {
+          for (let key of tableKey) {
+
+            if ((item.item_sub_type == 'KPI_PROMPT' || item.item_sub_type == 'KPI_VALUE' || item.item_sub_type == 'KPI_MESSAGE') && item.item_visible_flag == 'T') {
+              if ((item.item_name) && (item.item_name.toUpperCase() == key.toUpperCase())) {
+                if (kpiValue) {
+                  kpiValue += "@" + table[key];
+                  kpiItem.value = kpiValue;
+                } else {
+                  kpiValue = table[key];
+                  kpiItem.value = kpiValue;
+                }
+              }
+            } else {
+              if ((item.item_name) && (item.item_name.toUpperCase() == key.toUpperCase()) && item.item_visible_flag == 'T') {
+                item.value = table[key]
+              }
+            }
+          }
+        }
+      }
+
+      let framelvl4Arr = [];
+      for (let itemGroup of frameLevel4) {
+        for (let item of itemGroup.Level5) {
+          if (item.value) {
+            framelvl4Arr.push(itemGroup);
+          }
+        }
+      }
+      tableRows.push(framelvl4Arr);
+    }
+    let i = tableRows.length - 1;
+    tableRows[i].push(itemData);
+  
+    let finalRows = [];
+    let level5 = [];
+    let count = 0;
+    let rowsLength = 0;
+    let newTabRows = [];
+    let f = JSON.parse(JSON.stringify(tableRows));
+    for (let x of f) {
+      
+      for (let itemGroup of x) {
+        rowsLength++;
+        for (let z of itemGroup.Level5) {
+          if (z.item_sub_type == "KPI_PROMPT") {
+            count++;
+            newTabRows.push(z);
+            if(count == this.colSize.length || rowsLength == tableRows.length){
+              itemGroup.Level5 = newTabRows;
+              finalRows.push(itemGroup);
+              newTabRows = [];
+              count = 0;
+            }
+          }
+
+        }
+      
+    }
+    }
+    
+
+   // finalRows[0].push(itemData);
+    this.frame.tableRows = finalRows;
+    console.log(this.frame.tableRows);
+    console.log(finalRows[0].level5[0]);
+    this.showFrame = true;
+
+  }
+
+  itemClickedKpi(event, i, x) {
+    let z = 0;
+    for(let y of this.colSize){
+      z +=i;
+    } 
+    let rowindex = z + x ;
+    let tableRows = [];
+    let tableKey = [];
+    if (this.tableData.length > 0) {
+      tableKey = Object.keys(this.tableData[0]);
+    }
+    for (let table of this.tableData) {
+
+      let frameLevel4 = JSON.parse(JSON.stringify(this.frame.Level4))
+      for (let itemGroup of frameLevel4) {
+        for (let item of itemGroup.Level5) {
+          for (let key of tableKey) {
+            if ((item.item_name) && (item.item_name.toUpperCase() == key.toUpperCase())) {
+              item.value = table[key]
+            }
+          }
+        }
+      }
+      tableRows.push(frameLevel4);
+    }
+    let wsdp = [];
+    let wsdpcl = [];
+    let col = {};
+    for (let itemGroup of tableRows[rowindex]) {
+      if (itemGroup.Level5) {
+        for (let item of itemGroup.Level5) {
+          if (item.codeOfValues) {
+            col[item.apps_item_seqid] = item.codeOfValues
+          } else {
+            col[item.apps_item_seqid] = item.value
+          }
+        }
+      }
+    }
+    wsdp.push(col);
+    wsdpcl.push(col);
+    event.wsdpcl = wsdpcl;
+    event.wsdp = wsdp;
+    event.callingObjectArr = this.callingObjectArr;
+    event.itemIndex = rowindex;
+   /*  event.click_events_str = this.wscp_send_input.service_type;
+    this.wscp_send_input.apps_item_seqid = event.apps_item_seqid;
+    event.wscp = this.wscp_send_input; */
+
+    this.emitPass.emit(event);
+
+  }
+
+  itemValueChange(event, rowindex) {
+    console.log("itemValueChange" + JSON.stringify(event));
+    if (event.dependent_column_str) {
+      // this.wsdp = [];
+      let wsdp = [];
+      let dependent_column_arr = event.dependent_column_str.split("#")
+      if (this.frame.tableRows) {
+        let col = {};
+        for (let itemGroup of this.frame.tableRows[rowindex]) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.codeOfValues) {
+                col[item.apps_item_seqid] = item.codeOfValues
+              } else {
+                col[item.apps_item_seqid] = item.value
+              }
+              if (dependent_column_arr.indexOf(item.apps_item_seqid) > -1) {
+                item.codeOfValues = ""
+                item.value = ""
+              }
+              if (item.formula_str) {
+                console.log()
+                console.log(item.formula_str + " ---> " + item.prompt_name)
+                item.value = this.globalObjects.autoCalculation(item.formula_str, this.frame.tableRows[rowindex])
+              }
+            }
+          }
+        }
+        wsdp.push(col);
+      } else {
+        for (let itemGroup of this.frame.Level4) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (dependent_column_arr.indexOf(item.apps_item_seqid) > -1) {
+                item.codeOfValues = ""
+                item.value = ""
+              }
+            }
+          }
+        }
+      }
+     
+      event.wsdp = wsdp;
+      console.log(event.wsdp);
+
+
+      console.log("ITEM " + rowindex);
+      if (event.dependent_column_sql && event.value) {
+        this.getDependentData(event, rowindex).then(res => {
+          if (res === "success") {
+            if (event.post_text_validate_plsql) {
+              // setTimeout(() => this.PostTextValidatePlsql(event, rowindex), 3000);
+              this.PostTextValidatePlsql(event, rowindex);
+            }
+          }
+        });
+      } else if (event.post_text_validate_plsql && event.value) {
+        this.PostTextValidatePlsql(event, rowindex);
+      }
+    }
+  }
+
+  getDependentData(event, rowindex) {
+    return new Promise((resolve, reject) => {
+      // this.globalObjects.showLoading();
+      let wscp: any = {};
+      wscp.service_type = "getDependentColumns";
+      wscp.apps_page_frame_seqid = this.frame.apps_page_frame_seqid;
+      wscp.item_sub_type = this.wscp_send_input.item_sub_type;
+      wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      wscp.apps_item_seqid = event.apps_item_seqid;
+      wscp.apps_page_no = event.apps_page_no;
+      wscp.object_code = event.object_code;
+
+      let newWsdp = [];
+      newWsdp.push(Object.assign(this.wsdp[0], event.wsdp[0]));
+
+      var data = {
+        "wslp": this.userDetails,
+        "wscp": wscp,
+        "wsdp": newWsdp
+      }
+
+      let l_url = "S2U";
+      this.dataService.postData(l_url, data).then(res => {
+        // this.globalObjects.hideLoading();
+        let data: any = res;
+        console.log(data)
+
+        if (data.responseStatus == "success") {
+          resolve("success");
+          let keyValue = data.responseData;
+          for (let itemGroup of this.frame.tableRows[rowindex]) {
+            if (itemGroup.Level5) {
+              for (let item of itemGroup.Level5) {
+                if (keyValue.Level1_Keys.indexOf(item.item_name) > -1) {
+                  item.value = keyValue.Values[0][keyValue.Level1_Keys.indexOf(item.item_name)]
+                }
+              }
+            }
+          }
+        }
+      }).catch(err => {
+        console.log("this.frame canvas err");
+
+        this.globalObjects.hideLoading();
+        this.globalObjects.presentToast("1.6 Something went wrong please try again later!");
+        console.log(err);
+      })
+    })
+    // }
+
+  }
+
+  PostTextValidatePlsql(event, rowindex) {
+    this.globalObjects.showLoading();
+    let wscp: any = {};
+    wscp.service_type = "PostTextValidatePlsql";
+    wscp.apps_page_frame_seqid = this.frame.apps_page_frame_seqid;
+    wscp.item_sub_type = this.wscp_send_input.item_sub_type;
+    wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+    wscp.apps_item_seqid = event.apps_item_seqid;
+    wscp.apps_page_no = event.apps_page_no;
+    wscp.object_code = event.object_code;
+
+    var inputData = {
+      "wslp": this.userDetails,
+      "wscp": wscp,
+      "wsdp": event.wsdp
+    }
+
+    let l_url = "S2U";
+    this.dataService.postData(l_url, inputData).then(res => {
+      this.globalObjects.hideLoading();
+      let data: any = res;
+      console.log(data)
+
+      if (data.responseStatus == "success") {
+        // console.log(data.responseData.Values[0][0] + data.responseData.Values[0][1]);
+        // console.log(event.wsdp);
+        let objData = this.globalObjects.setPageInfo(data.responseData);
+        let keyValue = data.responseData;
+        if (objData.Level1[0].status == "F" || objData.Level1[0].status == "Q") {
+          if (objData.Level1[0].message) {
+            alert(objData.Level1[0].message);
+          }
+          this.globalObjects.clickedbutton = false;
+          for (let itemGroup of this.frame.tableRows[rowindex]) {
+            if (itemGroup.Level5) {
+              for (let item of itemGroup.Level5) {
+                if (objData.Level1[0].item_name == item.item_name) {
+                  item.value = "";
+                  item.codeOfValues = "";
+                }
+              }
+            }
+          }
+        } else if (objData.Level1[0].status == "L") {
+          sessionStorage.setItem("PLSQL_L", objData.Level1[0].message);
+        } else if (objData.Level1[0].status == "T") {
+        } else {
+          objData.Level1[0].status = "Q";
+          // alert(objData.Level1[0].message);
+          this.globalObjects.clickedbutton = false;
+          // for (let itemGroup of this.frame.tableRows[rowindex]) {
+          //   if (itemGroup.Level5) {
+          //     for (let item of itemGroup.Level5) {
+          //       if (objData.Level1[0].item_name == item.item_name) {
+          //         item.value = "";
+          //         item.codeOfValues = "";
+
+          //       }
+          //     }
+          //   }
+          // }
+        }
+      }
+
+    }).catch(err => {
+      console.log("this.frame canvas err");
+
+      this.globalObjects.hideLoading();
+      this.globalObjects.presentToast("1.7 Something went wrong please try again later!");
+      console.log(err);
+    })
+
+  }
+  // itemClicked(event, rowindex) {
+  //   // console.log("itemClicked " + rowindex);
+  //   console.log("itemClicked " + JSON.stringify(event));
+  //   this.PostTextValidatePlsql(event, rowindex).then(res => {
+  //     if (res == "success") {
+  //       this.itemClicked1(event, rowindex);
+  //     }
+  //   })
+  // }
+
+
+
+  itemClicked(event, i) {
+    // alert("valid--> " + valid)
+    console.log(i);
+    var rowindex;
+    // for (let dataRow of rowsdata) {
+    //   if (dataRow[0].item_name == "ROWNUMBER") {
+    //     rowindex = dataRow[0].value - 1;
+    //   }
+    // }
+    // if(!rowindex){
+    //   rowindex = i;
+    // }
+
+    rowindex = i;
+    event.callingObjectArr = this.callingObjectArr;
+    event.itemIndex = rowindex;
+
+
+    let isValid = true;
+    if (event.click_events_str && event.click_events_str.indexOf("addItem") > -1) {
+      let frameLevel4 = JSON.parse(JSON.stringify(this.frame.tableRows[rowindex]))
+      for (let itemGroup of frameLevel4) {
+        if (itemGroup.Level5) {
+          for (let item of itemGroup.Level5) {
+            let temp = item.design_control_type;
+            item.design_control_type = item.design_control_type_auto_card;
+            item.design_control_type_auto_card = temp;
+
+            temp = item.display_setting_str;
+            item.display_setting_str = item.display_setting_str_auto_card;
+            item.display_setting_str_auto_card = temp;
+
+            temp = item.item_visible_flag;
+            item.item_visible_flag = item.flag_auto_card;
+            item.flag_auto_card = temp;
+
+            item.temp_item_type = item.item_type
+
+            if (item.item_type != "BT") {
+              item.item_type = "TEXT";
+            }
+            if (item.item_name == "SLNO") {
+              item.value = this.item_slno_count;
+              this.item_slno_count = this.item_slno_count + 1;
+            }
+            if (item.isValid !== undefined && !item.isValid) {
+              isValid = item.isValid;
+            }
+            // console.log();
+          }
+        }
+      }
+
+      let checkValidFrame = false;
+      if (event.click_events_str.indexOf("checkValidFrame") > -1) {
+        let arr = event.click_events_str.split("#");
+        let frmseq = arr[event.click_events_str.indexOf("checkValidFrame")].split("~")[1];
+        if (this.frame.apps_page_frame_seqid == frmseq) {
+          checkValidFrame = true;
+        }
+      }
+
+      if (checkValidFrame && !isValid) {
+        for (let itemGroup of this.frame.tableRows[rowindex]) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.isValid !== undefined && !item.isValid) {
+                item.touched = true;
+              }
+            }
+          }
+        }
+        this.globalObjects.clickedbutton = false;
+        alert("Please correct all the errors and enter valid input")
+      } else {
+        if (event.click_events_str.indexOf("checkValidFrame") > -1) {
+          let arr = event.click_events_str.split("#");
+          arr.splice([event.click_events_str.indexOf("checkValidFrame")], 1);
+          event.click_events_str = arr.join("#");
+        }
+        this.frame.tableRows[rowindex] = JSON.parse(JSON.stringify(this.frame.Level4))
+        event.ADD_ITEM = frameLevel4;
+
+
+        this.emitPass.emit(event);
+      }
+    } else {
+      event.wsdp = [];
+      if (this.frame.tableRows) {
+        for (let framedata of this.frame.tableRows) {
+          let col = {};
+          for (let itemGroup of framedata) {
+            if (itemGroup.Level5) {
+              for (let item of itemGroup.Level5) {
+                let value;
+                if (item.codeOfValues) {
+                  value = item.codeOfValues
+                } else {
+                  value = item.value
+                }
+                col[item.apps_item_seqid] = value;
+                if (item.session_hold_flag == 'T') {
+                  if (this.sessionObj) {
+                    this.sessionObj[item.item_name] = value
+                  } else {
+                    this.sessionObj = {};
+                    this.sessionObj[item.item_name] = value
+                  }
+                }
+                if (item.isValid !== undefined && !item.isValid) {
+                  isValid = item.isValid;
+                }
+              }
+            }
+          }
+          event.sessionObj = this.sessionObj
+          event.wsdp.push(col);
+        }
+        //--------------------------
+        if (this.frame.tableRows.length > 1) {
+          let wsdpcl = {};
+          for (let itemGroup of this.frame.tableRows[rowindex]) {
+            if (itemGroup.Level5) {
+              for (let item of itemGroup.Level5) {
+                if (item.codeOfValues) {
+                  wsdpcl[item.apps_item_seqid] = item.codeOfValues
+                } else {
+                  wsdpcl[item.apps_item_seqid] = item.value
+                }
+              }
+            }
+          }
+          event.wsdpcl = [];
+          event.wsdpcl.push(wsdpcl);
+        }
+        //--------------------------
+      } else {
+        let col = {};
+        for (let itemGroup of this.frame.Level4) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.codeOfValues) {
+                col[item.apps_item_seqid] = item.codeOfValues
+              } else {
+                col[item.apps_item_seqid] = item.value
+              }
+              if (item.isValid !== undefined && !item.isValid) {
+                isValid = item.isValid
+              }
+            }
+          }
+        }
+        event.wsdp.push(col);
+      }
+
+      let checkValidFrame = false;
+      if (event.click_events_str && event.click_events_str.indexOf("checkValidFrame") > -1) {
+        let arr = event.click_events_str.split("#");
+        let frmseq = arr[event.click_events_str.indexOf("checkValidFrame")].split("~")[1];
+        if (this.frame.apps_page_frame_seqid == frmseq) {
+          checkValidFrame = true;
+        }
+      }
+
+      if (checkValidFrame && !isValid) {
+        for (let itemGroup of this.frame.tableRows[rowindex]) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.isValid !== undefined && !item.isValid) {
+                item.touched = true;
+              }
+            }
+          }
+        }
+        this.globalObjects.clickedbutton = false;
+        alert("Please correct all the errors and enter valid input")
+      } else {
+
+        this.emitPass.emit(event);
+      }
+    }
+
+  }
+
+  onSubmit(form) {
+    alert(form.form.valid)
+  }
+
+}

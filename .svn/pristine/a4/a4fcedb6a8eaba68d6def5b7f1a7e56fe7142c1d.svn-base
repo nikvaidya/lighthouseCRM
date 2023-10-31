@@ -1,0 +1,16 @@
+@import '../../../mixins';
+.frame-name
+{
+    margin: 0px;
+    font-size: 15px;
+    padding: 2px 5px 2px 10px;
+    &::before
+    {
+        @include before-after;
+        width:5px;
+        height:100%;
+        left:0px;
+        top:0px;
+        
+    }
+}

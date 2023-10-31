@@ -1,0 +1,30 @@
+<ion-slides class="image-slider" pager="true">
+
+  <ion-slide *ngFor="let slideItem of frame.Level4[0].Level5">
+    <img
+      [src]="globalObjects.getScopeUrl()+'getImage?id='+slideItem.apps_item_seqid+'&appTheme='+globalObjects.appTheme" />
+    <div class="img-caption-cont" *ngIf="slideItem.prompt_name">
+      <div class="img-caption">
+        <h1 class="mt-0 mb-4" class="heading">{{slideItem.prompt_name}}</h1>
+      </div>
+    </div>
+  </ion-slide>
+  <!-- 
+  <ion-slide>
+    <img src="assets/imgs/2.jpg">
+    <h1 class="mt-0 mb-4">Slide 2</h1>
+  </ion-slide>
+
+  <ion-slide>
+    <img src="assets/imgs/3.jpg">
+    <h1 class="mt-0 mb-4">Slide 3</h1>
+  </ion-slide> -->
+
+<!-- 
+  <ion-slides class="image-slider" pager="true">
+    <ion-slide *ngFor="let slideItem of imgUrl">
+      <img [src]="'https://firebasestorage.googleapis.com/v0/b/testimageload.appspot.com/o/'+slideItem.name+'?alt=media'" />
+    </ion-slide>
+  </ion-slides> -->
+
+</ion-slides>

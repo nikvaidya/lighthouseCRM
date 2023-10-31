@@ -1,0 +1,59 @@
+@import '../../mixins';
+.page-appkey-collection{
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+  .client-wraper
+  {
+    //   padding-top: 1rem;
+      
+      text-align:center;
+      padding-top: 10px;
+
+.cancle-wrap
+{
+
+  padding-top: 2px;
+  position: absolute;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  top: -2px;
+
+
+          .cancle-btn
+   { 
+        width: 25px;
+          height: 25px;
+         
+          text-align: center;
+          line-height: 25px;
+          font-weight: bold;
+         
+          border-radius: 25px;
+}
+
+}
+
+  }
+  h2{   
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 8px 0 8px;
+}
+h3 {   
+    font-size: 1rem;
+    padding: 0.4rem 0.2rem!important;
+    font-weight: 500;  
+    margin-bottom: 0;
+    margin-top: 10px;
+}
+
+img
+{
+    height: 45px;
+    padding: 0px 0.5rem;
+}
+}

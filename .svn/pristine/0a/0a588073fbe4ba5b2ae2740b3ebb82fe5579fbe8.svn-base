@@ -1,0 +1,28 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-check-box',
+  templateUrl: './check-box.component.html',
+  styleUrls: ['./check-box.component.scss'],
+})
+export class CheckBoxComponent implements OnInit {
+  @Input() checkBox: any = {};
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  checkBoxVal: any = {};
+  constructor() { }
+
+  ngOnInit() { }
+
+  itemClick(event) {
+    console.log(this.checkBox);
+    console.log(this.checkBoxVal);
+    // console.log(event);
+    if (this.checkBoxVal.isChecked) {
+      this.checkBox.value = "Y";
+    } else {
+      this.checkBox.value = "N";
+    }
+    this.emitPass.emit(this.checkBox);
+  }
+
+}

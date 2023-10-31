@@ -1,0 +1,9 @@
+.reset-container{
+    height: 100%;
+    display: flex;
+}
+.loginForm {
+    width: 60%;
+    margin: auto;
+    text-align: center;
+}

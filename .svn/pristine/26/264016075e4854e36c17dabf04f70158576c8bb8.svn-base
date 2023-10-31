@@ -1,0 +1,90 @@
+<div class="capture-img-container">
+  <ion-label class="form-label">{{imageinput.prompt_name}}</ion-label>
+  <div *ngIf="!imageinput.value  &&  imageinput.item_sub_type !='DS'">
+    <img src="assets/imgs/default-thumbnail.jpg" class="img-input">
+  </div>
+  <div *ngIf="imageinput.value " class="capture-img-container" (click)="photoview()">
+    <img [src]="'data:image/jpeg;base64,'+imageinput.value" class="img-input">
+  </div>
+</div>
+<!--SIGNATURE PAD-->
+<div class="mb-2" *ngIf="imageinput.item_sub_type=='S'">
+  <ion-grid class="p-0">
+    <ion-row>
+      <div class="img-capture-sec-container">
+        <ion-col col-4 class="p-0">
+          <div class="img-capture-sec d-inline-block">
+            <button ion-button (click)="opensignaturePad()" small>
+              <ion-icon name="md-create"></ion-icon>
+            </button>
+          </div>
+
+          <div class="img-capture-sec trash-btn-sec d-inline-block">
+            <button ion-button (click)="drawClear()" small>
+              <ion-icon name="trash"></ion-icon>
+            </button>
+          </div>
+        </ion-col>
+      </div>
+    </ion-row>
+  </ion-grid>
+</div>
+<!--END-->
+
+
+
+<!--CAMERA-->
+<div class="mb-2" *ngIf="imageinput.item_sub_type !='S'  &&  imageinput.item_sub_type !='DS'">
+  <div class="img-capture-sec-container">
+    <div class="img-capture-sec d-inline-block">
+      <button class="" ion-button (click)="takeImage(imageinput.item_db_name,'CAMERA')" small>
+        <ion-icon name="camera"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec d-inline-block">
+      <button class="" ion-button (click)="takeImage(imageinput.item_db_name,'PHOTOLIBRARY')" small>
+        <ion-icon name="images"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec trash-btn-sec d-inline-block">
+      <button ion-button (click)="clearImage()" small>
+        <ion-icon name="trash"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+<!--CAMERA END-->
+
+<!--Camscaner Start-->
+<div class="camscaner" *ngIf="imageinput.item_sub_type=='DS'">
+<div class="capture-img-container">
+  <div *ngIf="!imageinput.value">
+    <img src="assets/imgs/default-thumbnail.jpg" class="img-input">
+  </div>
+  <div *ngIf="imageinput.value " class="capture-img-container" (click)="photoview()">
+    <img [src]="'data:image/jpeg;base64,'+imageinput.value" class="img-input">
+  </div>
+</div>
+<div class="mb-2">
+  <div class="img-capture-sec-container">
+    <div class="img-capture-sec d-inline-block">
+      <button class="" ion-button  (click)="scanDoc()"  small>
+        <ion-icon name="camera"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec d-inline-block">
+      <button class="" ion-button small  (click)="takeImage(imageinput.item_db_name,'PHOTOLIBRARY')">
+        <ion-icon name="images"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec trash-btn-sec d-inline-block">
+      <button ion-button (click)="clearImage()"   small>
+        <ion-icon name="trash"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+<!--Camscaner End-->
+
+

@@ -1,0 +1,7 @@
+
+<ion-label  class="input-label">{{dialer.prompt_name}}</ion-label>
+  <a class="communication phone-communication" href="tel:{{dialer.value}}" (click)="itemClick($event)"><span class="communication-value">{{dialer.value}}</span></a>
+
+
+
+  <!-- <a class="communication phone-communication" href="tel:{{dialer.value}}" (click)="itemClick($event)"><ion-icon name="call" ></ion-icon><span class="communication-value">{{dialer.value}}</span></a> -->

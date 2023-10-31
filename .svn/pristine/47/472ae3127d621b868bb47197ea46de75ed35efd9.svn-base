@@ -1,0 +1,229 @@
+<div *ngIf="filter">
+  <app-frame-canvas-filter [frametable]="frame" (passdataToframetable)="getdataFromcanvasFilter($event)"
+    [frame]='frame'></app-frame-canvas-filter>
+</div>
+
+
+  <ion-row>
+    <ion-col class="pl-0" size="7">
+      <!-- <h1 class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1> -->
+      <h1 *ngIf="frame.apps_page_frame_name" class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1>
+    </ion-col>
+    <ion-col class="pr-0 data-view-type text-right" size="5">
+      <!-- <ion-icon (click)="toggle()" [hidden]="horizontal_table=='Hide'" name="ios-arrow-dropdown-circle"></ion-icon>
+      <ion-icon (click)="toggle()" [hidden]="horizontal_table=='Show'" name="ios-arrow-dropright-circle"></ion-icon> -->
+      <!-- <ion-icon name="ios-funnel" (click)="filterToggle()" class="filter-btn ml-3"></ion-icon> -->
+    </ion-col>
+  </ion-row>
+  
+  <div *ngIf="searchFlag  && !filter ">
+    <div class="input-group primary-search-section">
+  
+      <ion-input class="input-text" [hidden]="horizontal_table=='Hide'" placeholder="Search Here..."
+        [(ngModel)]="searchText"></ion-input>
+  
+      <ion-input class="input-text" [hidden]="horizontal_table=='Show'" placeholder="Search Here..."
+        [(ngModel)]="searchText"></ion-input>
+  
+  
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small (click)="openMike()">
+          <img src="./assets/imgs/google-speaker.png">
+        </button>
+      </div>
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+          <ion-icon name="qr-scanner" (click)="openbarcodescanner()"></ion-icon>
+        </button>
+      </div>
+  
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+  
+          <ion-icon (click)="toggle()" [hidden]="horizontal_table=='Hide'" name="ios-arrow-dropdown-circle"></ion-icon>
+          <ion-icon (click)="toggle()" [hidden]="horizontal_table=='Show'" name="ios-arrow-dropright-circle"></ion-icon>
+        </button>
+      </div>
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small (click)="filterToggle()">
+          <ion-icon name="ios-funnel"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- <div *ngIf="show_filter=='show' && !canvasfilter">
+    <app-frame-filter [frame]="filterFormData" (emitFilter)="getFilterParameter($event)"></app-frame-filter>
+  </div> -->
+  
+  <div *ngIf="show_filter=='show' ">
+    <div *ngIf="toggleFilter">
+      <app-frame-canvas-filter [frame]="frame" [frametable]='frame' (passdataToframetable)="getdataFromcanvasFilter($event)" (emitFilter)="getFilterParameter($event)"></app-frame-canvas-filter>
+    </div>
+  
+  
+  </div>
+  <!-- ------horizintal-------------  now showing this -->
+ 
+  <div *ngIf="horizontal_table=='Show' && !filter ">
+    <div class="table-responsive" *ngIf="frame.apps_frame_type=='TABLE'">
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let th of thead;let i=index" (click)="thClick(th,i)">{{th}}
+              <ion-icon name="arrow-round-up" *ngIf="th==orderByParam.th && orderByParam.direction > 0"></ion-icon>
+              <ion-icon name="arrow-round-down" *ngIf="th==orderByParam.th && orderByParam.direction < 0"></ion-icon>
+            </th>
+  
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tableData of frame.tableRows |tableSearch :searchText;let rowindex=index">
+            <ng-container *ngFor="let itemGroup of tableData;">
+              <td *ngFor="let input_item of itemGroup;"
+                [hidden]="(current_page_parameter.MODE && !(input_item.item_visible_flag && (input_item.item_visible_flag.indexOf(current_page_parameter.MODE)>-1)) )||input_item.item_visible_flag=='F'"
+                [ngStyle]="getParsedJson(input_item.display_setting_str)">
+                <app-items [item]="input_item" [frame_type]="frame.apps_frame_type"
+                  (emitPass)="itemClicked($event,tableData,rowindex)" (LHSOnChange)="itemValueChange($event,rowindex)">
+                </app-items>
+              </td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+      <div class="center" *ngIf = "!frame.tableRows">
+        <div class="text-center">
+            <img src = "../../../../assets/dot.gif" width="20%">
+          </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- -----------------------on button click Vertical ------- -->
+  <div class="left-fixed-table" *ngIf="horizontal_table=='Hide' && !filter ">
+    <ion-row>
+      <ion-col size="2" class="p-0">
+        <table class="table left-table">
+          <thead class="th-thinner">
+            <tr *ngFor="let th of thead;">{{th}}
+            </tr>
+          </thead>
+        </table>
+      </ion-col>
+      <ion-col size="10" class="p-0">
+        <div class="table-responsive">
+          <table class="table right-fixed-table">
+            <tbody>
+              <tr *ngFor="let rows of frame.verticalTable">
+                <ng-container *ngFor="let itemGroup of rows; let i=index">
+                  <td *ngFor="let input_item of itemGroup.Level5" [hidden]="input_item.item_visible_flag=='F'"
+                    [ngStyle]="getParsedJson(input_item.display_setting_str)">
+                    <app-items [item]="input_item" (emitPass)="itemClicked($event,i)">
+                    </app-items>
+                  </td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ion-col>
+    </ion-row>
+  </div>
+  
+  
+
+  
+  <div class="pagination-container" *ngIf=" !canvasfilter && !jsFilter && !advanceFilter">
+    <ul class="paginator my-1">
+      <li class="pt-1">Total Records : {{this.l_total_rows}}</li>
+      <li>
+        <ion-icon class="paginator-btn" *ngIf="l_current_page !=1" name="skip-backward" (click)="paginate('1');">
+        </ion-icon>
+      </li>
+      <li>
+        <ion-icon class="paginator-btn" *ngIf="l_current_page !=1" name="arrow-round-back"
+          (click)='paginate(this.l_current_page-1);'></ion-icon>
+      </li>
+      <li class="pt-1"> Page {{(this.l_current_page)}} Of {{this.l_total_remain_pages}}</li>
+      <!-- {{(this.l_total_remain_pages>this.l_total_rows) ? this.l_total_rows : this.l_total_remain_pages}}</li> -->
+      <li>
+        <ion-icon class="paginator-btn next-btn" *ngIf="l_current_page !=l_total_remain_pages" name="arrow-round-forward"
+          (click)='paginate(this.l_current_page+1);'>
+        </ion-icon>
+      </li>
+      <li>
+        <ion-icon class="paginator-btn next-btn" *ngIf="l_current_page!=l_total_remain_pages" name="skip-forward"
+          (click)='goToLast(this.l_total_rows,this.l_total_remain_pages);'>
+        </ion-icon>
+  
+      </li>
+    </ul>
+  </div>
+  <div *ngIf=" !canvasfilter && !jsFilter && !advanceFilter">
+    <ion-button *ngIf="pdfFlag"  size="small" color="medium" (click)="downloadPDF()">Pdf Download</ion-button>
+    <ion-button *ngIf="graphFlag" size="small" color="medium" (click)="opengraph()">Open Graph</ion-button>
+  
+  </div>
+  
+  <div *ngIf="flagforgraph==true">
+  <app-frame-graph  [resfromTable]="resforgraph"></app-frame-graph>
+  <!-- <app-frame-dashboard-graph  [resfromTable]="resforgraph"></app-frame-dashboard-graph> -->
+  </div>
+  
+  
+  <!-- <ion-infinite-scroll class="ispinner" (ionInfinite)="doInfinite($event)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingColor="red" loadingText="Loading more data...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll> -->
+  
+  
+
+
+
+    <!--Table With Fix header Now Showing This-->
+  
+  <!-- <div class="table-fix-container">
+    <div class="table-fix-head" (scroll)="updateScroll(scrollOne,scrollTwo,scrollThree,1)" #scrollOne>
+      <table class="mb-0">
+        <thead>
+          <tr>
+            <th *ngFor="let th of thead;let i=index" (click)="thClick(th,i)"
+              style="width:100px;max-width:100px;min-width:100px;">{{th}}
+              <ion-icon name="arrow-round-up" *ngIf="th==orderByParam.th && orderByParam.direction > 0"></ion-icon>
+              <ion-icon name="arrow-round-down" *ngIf="th==orderByParam.th && orderByParam.direction < 0"></ion-icon>
+            </th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div class="table-fix-body" [style.max-height]="tbodyHeight"
+      (scroll)="updateScroll(scrollOne,scrollTwo,scrollThree,2)" #scrollTwo>
+      <table class="my-0">
+        <tbody>
+          <tr *ngFor="let tableData of frame.tableRows |tableSearch :searchText;let rowindex=index">
+            <ng-container *ngFor="let itemGroup of tableData;">
+              <td *ngFor="let input_item of itemGroup;" style="width:100px;max-width:100px;min-width:100px;"
+                [hidden]="(current_page_parameter.MODE && !(input_item.item_visible_flag && (input_item.item_visible_flag.indexOf(current_page_parameter.MODE)>-1)) )||input_item.item_visible_flag=='F'"
+                [ngStyle]="getParsedJson(input_item.display_setting_str)">
+                <app-items [item]="input_item" [frame_type]="frame.apps_frame_type"
+                  (emitPass)="itemClicked($event,rowindex)" (LHSOnChange)="itemValueChange($event,rowindex)">
+                </app-items>
+              </td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-fix-footer" (scroll)="updateScroll(scrollOne, scrollTwo,scrollThree,3)" #scrollThree>
+      <table class="mt-0">
+        <tfoot>
+          <tr>
+            <td *ngFor="let h of summaryRow" class="text-right" style="width:100px;max-width:100px;min-width:100px;">
+              {{h}}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div> -->
+  <!--Table With Fix header Sneha End-->

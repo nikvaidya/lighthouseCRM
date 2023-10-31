@@ -1,0 +1,160 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { DatePicker } from '@ionic-native/date-picker/ngx';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+
+
+@Component({
+  selector: 'app-date-input',
+  templateUrl: './date-input.component.html',
+  styleUrls: ['./date-input.component.scss'],
+})
+export class DateInputComponent implements OnInit {
+  @Input() dateinput: any;
+  platformValue: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+  current_page_parameter: any = {};
+  val:any;
+
+  constructor(public datepipe: DatePipe, private datePicker: DatePicker, public globalservice: GlobalObjectsService) {
+
+  }
+
+  ngOnInit() {
+     if(this.dateinput.value && this.dateinput.item_sub_type=='D' ){
+     this.val= this.globalservice.formatDate(this.dateinput.value, 'YYYY-MM-DD');
+    //  this.dateinput.value=new DatePipe("en-US").transform(this.val, "YYYY-MM-DD");
+    
+    }
+   if(this.dateinput.value && this.dateinput.item_sub_type=='DT'){
+      this.val= this.globalservice.formatDate(this.dateinput.value, "YYYY-MM-DD HH:mm:ss")
+    //  this.dateinput.value=new DatePipe("en-US").transform(this.val, "YYYY-MM-DD HH:mm:ss");
+     }  
+    //  if(this.dateinput.value && this.dateinput.item_sub_type=='T'){
+    //   this.val= this.dateinput.value;
+    //   this.dateinput.value=new DatePipe("en-US").transform(this.val, "HH:mm:ss");
+    //  }
+    this.val= this.dateinput.value;
+    this.current_page_parameter = this.globalservice.current_page_parameter;
+    console.log("dateinput", this.dateinput)
+    this.platformValue = this.globalservice.getLocallData('platformValue');
+    if(!this.platformValue){
+      this.platformValue="browser"
+    }
+    // console.log("platfrom value",this.platformValue)
+    this.showdate();
+
+  }
+  onChange() {
+    console.log(this.val);
+    console.log(this.dateinput.value);
+     if (this.dateinput.item_sub_type=='D' && this.platformValue == 'browser') {
+        this.dateinput.value = this.globalservice.formatDate(this.val, "dd-MM-yyyy");
+     }
+     else if (this.dateinput.item_sub_type=='T' && this.platformValue == 'browser') {
+      this.dateinput.value = this.globalservice.formatDate(this.val, "HH:mm:ss");
+    }
+    else if (this.dateinput.item_sub_type=='DT' && this.platformValue == 'browser') {
+      this.dateinput.value = this.globalservice.formatDate(this.val, "dd-MM-yyyy HH:mm:ss");
+    }
+   
+  }
+ 
+  showdate() {
+
+    // if (this.dateinput.item_enable_flag == 'F') {
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+
+      let t; let f;
+      if (this.dateinput.to_value) {
+        t = new Date(new Date().getTime() + (parseInt(this.dateinput.to_value) * 24 * 60 * 60 * 1000)).getTime();
+      }
+      if (this.dateinput.from_value) {
+        f = new Date(new Date().getTime() + (parseInt(this.dateinput.from_value) * 24 * 60 * 60 * 1000)).getTime();
+      }
+      this.dateinput.to_value = t;
+      this.dateinput.from_value = f;
+    }
+  }
+
+  showDateTimepicker() {
+    // if (this.dateinput.item_enable_flag == 'F') {
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+      this.datePicker.show({
+        date: new Date(),
+        mode: 'datetime',
+        minDate: this.dateinput.from_value,
+        maxDate: this.dateinput.to_value,
+        androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
+      }).then(
+        date => {
+          this.dateinput.value = "";
+          var dateVal = "";
+          dateVal = this.globalservice.formatDate(date, 'dd-MM-yyyy HH:mm:ss');
+          this.dateinput.value = dateVal;
+        },
+        err => console.log('Error occurred while getting datetime: ' + err)
+      );
+    }
+  }
+
+
+  showDatepicker(dateinput) {
+    // alert("it is ")
+    // if (this.dateinput.item_enable_flag == 'F') {
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+      this.datePicker.show({
+        date: new Date(),
+        mode: 'date',
+        minDate: this.dateinput.from_value,
+        maxDate: this.dateinput.to_value,
+        androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
+      }).then(
+        date => {
+
+          this.dateinput.value = "";
+          var dateVal = "";
+          dateVal = this.globalservice.formatDate(date, 'dd-MM-yyyy');
+          this.dateinput.value = dateVal;
+
+        },
+        err => console.log('Error occurred while getting datetime: ', err)
+      );
+    }
+  }
+  showtimepicker(dateinput) {
+    // if (this.dateinput.item_enable_flag == 'F') {
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+      this.datePicker.show({
+        date: new Date(),
+        mode: 'time',
+        androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
+      }).then(
+        date => {
+          this.dateinput.value = "";
+          var dateVal = "";
+          dateVal = this.globalservice.formatDate(date, 'HH:mm:ss');
+          this.dateinput.value = dateVal;
+
+        },
+        err => console.log('Error occurred while getting datetime: ' + err)
+      );
+    }
+  }
+
+  DateChanged(temp_date) {
+    if (temp_date) {
+      this.dateinput.value = this.globalservice.formatDate(temp_date, 'dd-MM-yyyy');
+    } else {
+      this.dateinput.value = null;
+    }
+    // alert(this.dateinput.value)
+  }
+  clear() {
+    this.dateinput.value = "";
+  }
+
+}
+
+

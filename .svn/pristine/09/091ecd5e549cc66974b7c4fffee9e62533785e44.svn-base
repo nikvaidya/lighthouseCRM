@@ -1,0 +1,1083 @@
+import { Injectable } from '@angular/core';
+// import 'rxjs/add/operator/map';
+import { HttpClient } from '@angular/common/http';
+import { LoadingController, ToastController, Platform, Events, AlertController } from '@ionic/angular';
+import { Device } from '@ionic-native/device/ngx';
+import { DatePipe } from '@angular/common';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { NativeGeocoderResult, NativeGeocoder, NativeGeocoderOptions } from '@ionic-native/native-geocoder/ngx';
+import { InAppBrowser, InAppBrowserOptions } from '@ionic-native/in-app-browser/ngx';
+// import { SMS } from '@ionic-native/sms/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { SpeechRecognition } from '@ionic-native/speech-recognition/ngx';
+import { BarcodeScanner, BarcodeScannerOptions } from '@ionic-native/barcode-scanner/ngx';
+import { FileOpener } from '@ionic-native/file-opener/ngx';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { File } from '@ionic-native/file/ngx';
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
+import { DocumentViewer } from '@ionic-native/document-viewer/ngx';
+import { FilePath } from '@ionic-native/file-path/ngx';
+import { FileChooser } from '@ionic-native/file-chooser/ngx';
+import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { SocialSharing } from '@ionic-native/social-sharing/ngx';
+// import { resolve } from 'dns';
+//import { BatteryStatus } from '@ionic-native/battery-status/ngx';
+
+
+declare var google: any;
+@Injectable({
+  providedIn: 'root'
+})
+export class GlobalObjectsService {
+  sendSMSurl = "https://fcm.googleapis.com/fcm/send";
+  url: any;
+  urlArr: any[];
+  urlArrCount: any = 0;
+  networkStatus: boolean = true;
+  // networkStatus: boolean = false;
+  loading: HTMLIonLoadingElement;
+  latitude1: any;
+  longitude1: any;
+  addressgenerate: any[];
+  usercodefromlogin: any;
+  platformVal: string;
+  mydatavariable: any = [];
+  tp_cnt: number = 0;
+  current_page_parameter: any = {};
+  loaderToShow: any;
+  isLoading: boolean;
+  public appTheme: any = "theme-blue";
+  public previousCallObj: any = "";
+  public fontSize: number = 0.9;
+  public dependFilterData = [];
+  isRecording: boolean = false;
+  speechdata: string;
+  countfortextband3d: number;
+  countforsummarycard: number = 0;
+  colorcount: number = 0;
+  barcodeinputdata: any;
+  clickedbutton: boolean = false;
+  toggleNotification: boolean = false;
+  toggleFab: boolean = true;
+  public newaddress: any;
+  letterObj = {
+    to: 'MCPLLOCP',
+    from: 'Lighthouse Indian Pvt.Ltd',
+    text: ''
+  }
+  pdfObj = null;
+  arr: any = [];
+
+  public cartSummaryPlain: any = [];
+  public summaryCartdeatail: any = [];
+  public summaryheadings: any = [];
+  dbName: any;
+  appKey: any;
+
+
+  constructor(public http: HttpClient, public loadingController: LoadingController, private barScanner: BarcodeScanner, private alertController: AlertController
+    , private photoViewer: PhotoViewer, private nativeGeocoder: NativeGeocoder, private iab: InAppBrowser, private geolocation: Geolocation, private toastCtrl: ToastController, public device: Device, private speechRecognition: SpeechRecognition, private plt: Platform, private file: File, private fileOpener: FileOpener, private filePath: FilePath, private filechooser: FileChooser, private androidPermissions: AndroidPermissions, private theInAppBrowser: InAppBrowser, private document: DocumentViewer, private events: Events, private socialSharing: SocialSharing
+    //, private battery:BatteryStatus
+  ) {
+    let theme = localStorage.getItem('theme');
+    if (theme) {
+      this.appTheme = theme;
+    }
+    this.geoLocation();
+    // this.getDeviceUniqueId();
+    this.speechRecognition.hasPermission()
+      .then((hasPermission: boolean) => {
+        // alert(hasPermission);
+        // private sms: SMS,
+        if (!hasPermission) {
+          this.speechRecognition.requestPermission();
+        }
+      });
+
+    let permission: boolean;
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.STORAGE).then(
+      result => permission = result.hasPermission),
+      (err => this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.STORAGE).then(
+        result => permission = result.hasPermission)
+      );
+
+    if (!permission) {
+      this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.STORAGE, this.androidPermissions.PERMISSION.GET_ACCOUNTS]);
+    }
+
+
+    this.url = this.getLocallData("scopeUrl");
+    if (this.getLocallData("server_url1")) {
+      let d1 = new Date().getTime();
+      this.checkAndSetScopeUrl().then(data => {
+        console.log("total time=" + (new Date().getTime() - d1))
+        this.url = this.getLocallData("scopeUrl");
+      }, err => {
+      })
+    }
+
+    this.checkAndSetScopeUrl().then(data => {
+      this.url = this.getLocallData("scopeUrl");
+    }, err => { })
+
+    setTimeout(() => {
+      // Put the logic here 
+      this.checkLocation("21.120538727183575", '79.04724472758869');
+
+    }, 5000);
+
+
+    this.speechRecognition.hasPermission().then((hasPermission: boolean) => {
+      // alert(hasPermission);
+      if (!hasPermission) {
+        this.speechRecognition.requestPermission();
+      }
+    });
+    // Toggle Fab & Notification
+    this.events.subscribe("toggleFab", (res) => {
+      this.toggleFab = res;
+    })
+    this.events.subscribe("toggleNotification", (res) => {
+      this.toggleNotification = res;
+    })
+
+  }
+
+  showLoading() {
+    // this.loadingController.create({
+    //   message: 'Please wait..'
+    // }).then((res) => {
+    //   res.present();
+
+    //   res.onDidDismiss().then((dis) => {
+    //     console.log('Loading dismissed!');
+    //   });
+    // });
+    // this.hideLoading();
+    //   res.onDidDismiss().then((dis) => {
+    //     console.log('Loading dismissed!');
+    //   });
+    // });
+    // this.hideLoading();
+
+    // this.isLoading = true;
+    // return await this.loadingController.create({
+
+    // }).then(a => {
+    //   a.present().then(() => {
+    //     console.log('presented');
+    //     if (!this.isLoading) {
+    //       a.dismiss().then(() => console.log('abort presenting'));
+    //     }
+    //   });
+    // });
+  }
+
+  async  hideLoading() {
+    // setTimeout(() => {
+    //   this.loadingController.dismiss();
+    // }, 1000);
+    // setTimeout(() => {
+    //   this.loadingController.dismiss();
+    // }, 1000);
+
+    //   this.isLoading = false;
+    //  return await  this.loadingController.dismiss().then(() => console.log('dismissed'));
+
+  }
+  setDataLocally(key, value) {
+    return localStorage.setItem(key, JSON.stringify(value));
+  }
+
+
+  getLocallData(key) {
+    return JSON.parse(localStorage.getItem(key));
+  }
+
+  destroyLocalData(key: string) {
+    // this.pouchDBService.getObject("sessionColumn12").then((data) => {
+    //   this.pouchDBService.deleteJSON(data).then(data => {
+    //   }, err => { })
+    // }, err => {
+    // })
+    return localStorage.removeItem(key);
+  }
+
+
+  async displayCordovaToast(msg) {
+    let toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 1000,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  setScopeUrl(url) {
+    this.url = url;
+  }
+  getScopeUrl() {
+    return this.url;
+  }
+  checkAndSetScopeUrl() {
+    return new Promise((resolve, reject) => {
+      this.urlArr = [];
+      this.urlArr.push(this.getLocallData("server_url1"));
+      this.urlArr.push(this.getLocallData("server_url2"));
+      this.urlArr.push(this.getLocallData("server_url3"));
+      this.urlArr.push(this.getLocallData("server_url4"));
+      //console.log("ScopeUrl>>>>"+this.urlArr.length);
+      this.check().then(data => {
+        resolve();
+      }, err => {
+        this.presentToastWithOptions("Requested server is not Available ! please try again later!", "errorClass");
+        reject();
+      });
+    })
+  }
+
+  check() {
+    // this.checkAndSetScopeUrl();
+    return new Promise((resolve, reject) => {
+      var url1 = this.urlArr[this.urlArrCount];
+      let date1 = new Date().getTime();
+      let req: any;
+      if (url1) {
+        req = this.http.get(url1 + 'checkServerStatus')
+          .subscribe(data => {
+            console.log("success time-->" + (new Date().getTime() - date1));
+            // this.events.publish('url:created', url1);
+            this.setDataLocally("scopeUrl", url1);
+            this.setScopeUrl(url1);
+            resolve();
+          }, err => {
+            console.log("err time-->" + (new Date().getTime() - date1));
+            if (this.urlArrCount == 3) {
+              this.urlArrCount = 0;
+              reject();
+            } else {
+              this.urlArrCount++;
+              this.check().then(data => {
+                resolve();
+              }, err => {
+                reject();
+              });
+            }
+          })
+      }
+
+      setTimeout(() => {
+        if (req) {
+          if (!req.closed) {
+            console.log("req unsubscribed");
+            this.presentToastWithOptions("Server Connectivity Issue !", "errorClass")
+            req.unsubscribe();
+            if (this.urlArrCount == 3) {
+              this.urlArrCount = 0;
+              reject();
+            } else {
+              this.urlArrCount++;
+              this.check().then(data => {
+                resolve();
+              }, err => {
+                reject();
+              });
+            }
+          }
+        }
+      }, 5000);
+    })
+
+  }
+
+  formatDate(date, format) {
+    var datePipe = new DatePipe("en-US");
+    var date1;
+    try {
+      date1 = new Date(date);
+      return datePipe.transform(date1, format);
+    } catch (err) {
+      date1 = new Date();
+      return datePipe.transform(date1, format);
+    }
+
+  }
+
+  async presentToast(message) {
+    if (!message) {
+      console.log('presentToast  : ' + message);
+      let toast = await this.toastCtrl.create({
+        message: message,
+        duration: 2000,
+        position: 'bottom'
+      });
+      await toast.present();
+    }
+  }
+
+  async s2uToast(message, cssclass) {
+    let toast = await this.toastCtrl.create({
+      message: message,
+      duration: 1000,
+      animated: true,
+      // showCloseButton: true,
+      // closeButtonText: "OK",
+      position: "middle",
+
+      cssClass: cssclass
+    });
+    await toast.present();
+  }
+
+  async presentToastWithOptions(message, cssclass) {
+    alert(message);
+    // const toast = await this.toastCtrl.create({
+    //   // header: 'Toast header',
+    //   message: message,
+    //   position: 'middle',
+    //   cssClass: 'errorAlert',
+    //   buttons: [
+    //     // {
+    //     //   // side: 'start',
+    //     //   // icon: 'hammer',
+    //     //   // text: 'ERROR',
+    //     //   handler: () => {
+    //     //     console.log('Favorite clicked');
+    //     //   }
+    //     // }, 
+    //     {
+    //       // text: 'Close',
+    //       icon: 'close-circle',
+    //       role: 'cancel',
+    //       handler: () => {
+    //         console.log('Cancel clicked');
+    //       }
+    //     }
+    //   ]
+    // });
+    // toast.present();
+  }
+
+  geoLocation() {
+    this.geolocation.getCurrentPosition().then((resp) => {
+      var latitude = resp.coords.latitude;
+      var longitude = resp.coords.longitude;
+      var altitude = resp.coords.altitude;
+      var timestamp = new Date(resp.timestamp);
+
+      // alert(latitude + '\n' + longitude + '\n' + timestamp)
+
+      // this.geoCoderLocation(latitude, longitude)
+
+    }).catch((error) => {
+      console.log('Error getting location', error);
+    });
+  }
+
+  geoCoderLocation(lat, lon) {
+    // alert('latlong==>' + lat + ',' + lon)
+    return new Promise((resolve, reject) => {
+      this.latitude1 = lat;
+      this.longitude1 = lon;
+
+      let options: NativeGeocoderOptions = {
+        useLocale: true,
+        maxResults: 5
+      };
+      this.nativeGeocoder.reverseGeocode(lat, lon)
+        .then((result: NativeGeocoderResult[]) => {
+         // console.log('location==>', result)
+          this.generateAddress(result[0]).then(res => {
+            return resolve(res);
+          });
+        })
+        .catch((error: any) => console.log(error));
+    });
+  }
+
+  generateAddress(result) {
+    return new Promise((resolve, reject) => {
+      let obj1 = [];
+      if (result.countryCode) {
+        obj1.push(result.countryCode)
+      }
+      if (result.postalCode) {
+        obj1.push(result.postalCode)
+      }
+      if (result.administrativeArea) {
+        obj1.push(result.administrativeArea)
+      }
+      if (result.subAdministrative) {
+        obj1.push(result.subAdministrative)
+      }
+      if (result.subLocality) {
+        obj1.push(result.subLocality)
+      }
+      if (result.throughfare) {
+        obj1.push(result.throughfare)
+      }
+      if (result.postalCode) {
+        obj1.push(result.postalCode + ".")
+      }
+      this.addressgenerate = obj1;
+    
+      return resolve(this.addressgenerate);
+    });
+  }
+
+
+  inappBrowser(url: string) {
+    let target = "_self";
+    this.iab.create(url, target);
+  }
+
+  transpose(temp) {
+    var tempLength = temp.length ? temp.length : 0,
+      arrLength = temp[0] instanceof Array ? temp[0].length : 0;
+    if (arrLength === 0 || tempLength === 0) {
+      return [];
+    }
+    var i, j, tempArray = [];
+    for (i = 0; i < arrLength; i++) {
+      tempArray[i] = [];
+      for (j = 0; j < tempLength; j++) {
+        tempArray[i][j] = temp[j][i];
+      }
+    }
+    return tempArray;
+  }
+
+
+  getDeviceInfo() {
+
+    let latitude: any = "";
+    let longitude: any = "";
+    let batteryPercent: any = "";
+    let userCode = this.getLocallData("userDetails").user_code;
+    let userName = this.getLocallData("userDetails").userName;
+    var dateTime = this.formatDate(new Date(), 'dd-MM-yyyy');
+
+    // this.battery.onChange().subscribe(status => {
+    //   console.log(status.level, status.isPlugged);
+    //   batteryPercent = status.level;
+    // });
+    this.geolocation.getCurrentPosition().then((resp) => {
+      latitude = resp.coords.latitude;
+      longitude = resp.coords.longitude;
+    }).catch((error) => {
+      console.log('Error getting location', error);
+    });
+    // Also include  "user_code":  "userName": 
+
+    let json = {
+      "device_id": this.device.uuid,
+      "user_code": userCode,
+      "userName": userName,
+      "device_version": this.device.version,
+      "device_model": this.device.model,
+      "latitude": latitude,
+      "longitude": longitude,
+      "currentDate": dateTime,
+      "batteryPercent": batteryPercent
+    }
+
+    return json;
+  }
+
+
+  setPageInfo(object_arr) {
+
+    // console.log("From Services",object_arr.Values);
+    let object_mast: any = {};
+    object_mast.Level1 = [];
+    for (let level1 of object_arr.Values) {
+
+      let level1Obj: any = {}
+      let levelKyIndex = 0;
+      for (let level1Values of level1) {
+        level1Obj[object_arr.Level1_Keys[levelKyIndex]] = level1Values
+        levelKyIndex++;
+      }
+      //level2-----
+      if (level1Obj.Level2) {
+        let level2Arr: any = []
+        for (let level2 of level1Obj.Level2) {
+          let level2Obj: any = {}
+          let level2KeyIndex = 0;
+          for (let level2Values of level2) {
+            level2Obj[object_arr.Level2_Keys[level2KeyIndex]] = level2Values
+            level2KeyIndex++;
+          }
+          //level3-------
+          if (level2Obj.Level3) {
+            let level3Arr: any = []
+            for (let Level3 of level2Obj.Level3) {
+              let level3Obj: any = {}
+              let level3KeyIndex = 0;
+              for (let level3Values of Level3) {
+                level3Obj[object_arr.Level3_Keys[level3KeyIndex]] = level3Values;
+                level3KeyIndex++;
+              }
+              //level4-------
+              if (level3Obj.Level4) {
+                let level4Arr: any = []
+                for (let Level4 of level3Obj.Level4) {
+                  let level4Obj: any = {}
+                  let level4KeyIndex = 0;
+                  for (let level4Values of Level4) {
+                    level4Obj[object_arr.Level4_Keys[level4KeyIndex]] = level4Values;
+                    level4KeyIndex++;
+                  }
+                  //level5---
+                  if (level4Obj.Level5) {
+                    let level5Arr: any = []
+                    for (let Level5 of level4Obj.Level5) {
+                      let level5Obj: any = {}
+                      let level5KeyIndex = 0;
+                      for (let level5Values of Level5) {
+                        level5Obj[object_arr.Level5_Keys[level5KeyIndex]] = level5Values;
+                        level5KeyIndex++;
+                      }
+                      //level6---
+                      if (level5Obj.Level6) {
+                        let level6Arr: any = []
+                        for (let Level6 of level5Obj.Level6) {
+                          let level6Obj: any = {}
+                          let level6KeyIndex = 0;
+                          for (let level6Values of Level6) {
+                            level6Obj[object_arr.Level6_Keys[level6KeyIndex]] = level6Values;
+                            level6KeyIndex++;
+                          }
+                          level6Arr.push(level6Obj)
+                        }
+                        level5Obj.Level6 = level6Arr
+                      }
+                      //---level6 end
+                      level5Arr.push(level5Obj)
+                    }
+                    level4Obj.Level5 = level5Arr
+                  }
+                  //---level5 end
+                  level4Arr.push(level4Obj)
+                }
+                level3Obj.Level4 = level4Arr
+              }
+              //level4 End-------
+              level3Arr.push(level3Obj)
+            }
+            level2Obj.Level3 = level3Arr
+          }
+          //level3 End-------
+          level2Arr.push(level2Obj);
+        }
+        level1Obj.Level2 = level2Arr
+      }
+      //level2 end----
+      object_mast.Level1.push(level1Obj)
+    }
+    return object_mast
+  }
+
+  setPlatformValue(platformVal) {
+    this.platformVal = platformVal;
+  }
+
+  getPlatformValue() {
+    return this.platformVal;
+  }
+
+  checkLocation(lat, lng) {
+    return new Promise((resolve, reject) => {
+
+      //exact LHS
+      // let fencingAreaCoordinates: any = [{ "lat": 21.120580618009253, "lng": 79.04723060396964 },
+      // { "lat": 21.120538727183575, "lng": 79.04724472758869 },
+      // { "lat": 21.120561889132304, "lng": 79.047304448761 },
+      // { "lat": 21.120437431275143, "lng": 79.04736953435133 },
+      // { "lat": 21.120223829242793, "lng": 79.04737123174277 },
+      // { "lat": 21.120145336947562, "lng": 79.04724418310161 },
+      // { "lat": 21.120028874953206, "lng": 79.04708763584131 },
+      // { "lat": 21.12002250261534, "lng": 79.04680502475732 },
+      // { "lat": 21.12007230890084, "lng": 79.04669309591293 },
+      // { "lat": 21.120186034343256, "lng": 79.04664651922235 },
+      // { "lat": 21.12036731460432, "lng": 79.04662944683082 },
+      // { "lat": 21.12056223856718, "lng": 79.04674014133457 },
+      // { "lat": 21.12062932439124, "lng": 79.04679255117412 },
+      // { "lat": 21.12067889599193, "lng": 79.04690933403015 },
+      // { "lat": 21.120658705051564, "lng": 79.04700641532146 },
+      // { "lat": 21.12063601208005, "lng": 79.04712227207574 }];
+
+
+      //including SMS, Persi,infocept
+      let fencingAreaCoordinates: any = [{ "lat": 21.121856647504902, "lng": 79.04720109967047 },
+      { "lat": 21.12131435448271, "lng": 79.04821836946111 },
+      { "lat": 21.119901351821063, "lng": 79.04840951887513 },
+      { "lat": 21.11962927280267, "lng": 79.04841827807616 },
+      { "lat": 21.119447267058526, "lng": 79.04780476478572 },
+      { "lat": 21.119431785800863, "lng": 79.04744679664611 },
+      { "lat": 21.11937627175174, "lng": 79.04640218299869 },
+      { "lat": 21.1195309297861, "lng": 79.04615150321956 },
+      { "lat": 21.12059632905379, "lng": 79.04555750068664 },
+      { "lat": 21.121091380558163, "lng": 79.04613790136727 }]
+
+
+
+      // let fencingAreaCoordinates: any = [{ "lat": 21.123658082221382,"lng": 79.04729765919501 },
+      // { "lat": 21.122845580985373,"lng": 79.04899084565739 },
+      // { "lat": 21.11999142526394,"lng": 79.05304437605287 },
+      // { "lat": 21.118818607868462,"lng": 79.05164765773009 },
+      // { "lat": 21.11808614643037,"lng": 79.05083029655452 },
+      // { "lat": 21.115858817143064,"lng": 79.04950673316955 },
+      // { "lat": 21.1174747017943,"lng": 79.0438272623444 },
+      // { "lat": 21.1182899092392,"lng": 79.04398427833554 },
+      // { "lat": 21.12090658033979,"lng": 79.04238176521301 },
+      // { "lat": 21.122222289632916,"lng": 79.04447493177805 }]
+
+
+
+
+      //bangladesh
+      // let fencingAreaCoordinates: any = [{ "lat": 23.859575638725445, "lng": 90.5668382075196 },
+      // { "lat": 23.795967001844076, "lng": 90.59398019311526 },
+      // { "lat": 23.79517001926506, "lng": 90.6678140732422 },
+      // { "lat": 23.75164296100932, "lng": 90.60723709521483 },
+      // { "lat": 23.69552680957083, "lng": 90.62905757812496 },
+      // { "lat": 23.73149317776876, "lng": 90.57256633972167 },
+      // { "lat": 23.694533627711703, "lng": 90.50646206420902 },
+      // { "lat": 23.749670811548736, "lng": 90.5313383184814 },
+      // { "lat": 23.79347603001114, "lng": 90.46557736572265 },
+      // { "lat": 23.794491737109826, "lng": 90.5450468979493 }];
+
+
+      var result;
+      try {
+        var fencingArea = new google.maps.Polygon({ paths: fencingAreaCoordinates });
+        // var fencingArea = new google.maps.Polygon({ paths: JSON.parse(fencingAreaCoordinates) });
+        setTimeout(function () {
+          // var fencingArea = new google.maps.Polygon({ paths: JSON.parse(fencingAreaCoordinates) });
+          if (google) {
+            // result = google.maps.geometry.poly.containsLocation(new google.maps.LatLng(lat, lng), fencingArea) ? 'T' : 'F';
+            // let result1 = google.maps.geometry.poly.containsLocation(new google.maps.LatLng(lat, lng), fencingArea);
+            // resolve(result1);
+          }
+          // return result;
+        }, 500);
+      } catch (error) {
+
+      }
+    })
+  }
+
+  autoCalculation(formulaStr: any, frame: any): any {
+    try {
+      let formulaArr = formulaStr.split("#");
+      for (let itemGroup of frame) {
+        if (itemGroup.Level5) {
+          for (let item of itemGroup.Level5) {
+            if (formulaArr.indexOf(item.item_name) > -1) {
+              formulaArr[formulaArr.indexOf(item.item_name)] = item.value;
+            }
+          }
+        }
+      }
+      let temp = formulaArr.join('');
+      console.log(temp + " ---> " + eval(temp));
+      return eval(temp);
+    } catch (err) {
+      // console.log(err);
+      return null;
+    }
+  }
+
+
+  async smsApi(a_mobile_number: any, a_sms_text: any) {
+    try {
+      var location = "http://sms.smsmob.in/api/mt/SendSMS?user=Lighthouse&password=lighthouse@123&senderid=LHSERP&channel=Trans&DCS=0&flashsms=0&number=" + a_mobile_number + "&text=" + encodeURIComponent(a_sms_text);
+      const options: InAppBrowserOptions = { location: "no", zoom: 'no', toolbar: 'no', hideurlbar: "yes", hidden: "yes" }
+      const browser = this.theInAppBrowser.create(location, '_self', options)
+      browser.on('loadstop').subscribe(event => {
+        this.s2uToast("Text message sent successfully", "paymentSuccessToast");
+      }, (error) => {
+        this.s2uToast("Text message not sent. :(", "errorToast");
+      });
+    } catch (error) {
+      console.log('smsApi : ' + error.message);
+    }
+  }
+
+  async shareViaWhatsAppWeb(mobileNo, message) {
+    try {
+      let url = "https://wa.me/" + encodeURIComponent(mobileNo) + "?text=" + encodeURIComponent(message);
+      alert(url);
+      window.open(url);
+      //   const options: InAppBrowserOptions = { location: "no", zoom: 'no', toolbar: 'no', hideurlbar: "yes", hidden: "yes" }
+      //   const browser = this.theInAppBrowser.create(url, '_self', options)
+      //   browser.on('loadstop').subscribe(event => {
+      //     this.s2uToast("Text message sent successfully", "paymentSuccessToast");
+      //   }, (error) => {
+      //     this.s2uToast("Text message not sent. :(", "errorToast");
+      //   });
+    } catch (error) {
+      console.log('sendWhatsApp : ' + error.message);
+    }
+  }
+
+  // "918793787460","Hello"
+  async shareViaWhatsApp(mobileNo, message) {
+    alert(mobileNo + ":" + message);
+    await this.socialSharing.shareViaWhatsAppToReceiver(mobileNo, message);
+  }
+
+  smsMobile(a_mobile_number: any, a_sms_text: any) {
+    // try {
+    //   this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.SEND_SMS).then(
+    //     result => console.log('Has permission?' + result.hasPermission),
+    //     err => this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.SEND_SMS)
+    //   );
+    //   var options = {
+    //     replaceLineBreaks: false, // true to replace \n by a new line, false by default
+    //     android: {
+    //       // intent: 'INTENT'  // Opens Default sms app
+    //       intent: '' // Sends sms without opening default sms app
+    //     }
+    //   }
+    //   this.sms.hasPermission().then(res => {
+    //     this.sms.send(a_mobile_number, a_sms_text, options).then(result => {
+    //       // alert(result);
+    //       this.s2uToast("Text message sent successfully! :)", "paymentSuccessToast");
+    //     }, (error) => {
+    //       // alert(error);
+    //       this.s2uToast("Text message not sent. :(", "errorToast");
+    //     });
+    //   });
+    // } catch (error) {
+    //   console.log('smsMobile : ' + error.message);
+    // }
+  }
+
+  stopListening() {
+    this.speechRecognition.stopListening().then(() => {
+      this.isRecording = false;
+    });
+  }
+
+  // getPermission() {
+  //   alert("permissiomn")
+  //   this.speechRecognition.hasPermission()
+  //     .then((hasPermission: boolean) => {
+  //       alert(hasPermission);
+  //       if (!hasPermission) {
+  //         this.speechRecognition.requestPermission();
+  //       }
+  //     });
+  // }
+
+  startListening() {
+    // this.getPermission();
+    return new Promise((resolve, reject) => {
+      this.speechRecognition.isRecognitionAvailable()
+        .then((available: boolean) => console.log(available))
+      this.speechRecognition.getSupportedLanguages()
+        .then(
+          (languages: string[]) => console.log(languages),
+          (error) => console.log(error)
+        )
+      let options = {
+        language: 'en-US'
+      }
+      this.speechRecognition.startListening(options)
+        .subscribe(
+          (matches: string[]) => {
+            this.speechdata = matches[0],
+              resolve(this.speechdata);
+          },
+          (onerror) => alert('error:' + onerror)
+        )
+      // alert(this.speechdata);
+    })
+  }
+
+  barcodescanner() {
+
+    let options: BarcodeScannerOptions = {
+      torchOn: true,
+      showTorchButton: true,
+      prompt: "Point the camera at the barcode"
+    };
+    return new Promise((resolve, reject) => {
+
+      this.barScanner.scan(options).then(barcodeData => {
+        console.log('Barcode data', barcodeData);
+
+        this.barcodeinputdata = barcodeData.text;
+        resolve(this.barcodeinputdata);
+        // alert(JSON.stringify(this.barcodeinputdata));
+        // alert((this.barcodeinputdata));
+
+      }).catch(err => {
+
+        console.log('Error', err);
+      }).finally(function () {
+        // this.flashlight.switchOff();
+      });
+    })
+  }
+
+  downloadPdf(data, title) {
+
+    // for (let index = 0; index <= data.length; index++) {
+    //   this.arr.push(data[index])
+    // }
+    console.log(this.arr)
+    var dateenow = new Date().toDateString();
+    // console.log(this.myDiv.nativeElement.innerHTML);
+
+    // console.log(this.myDiv.nativeElement.innerHTML);
+    var docDefinition = {
+      content: [
+        { text: title, style: 'title' },
+        { text: '', style: 'subheader' },
+        { text: dateenow, style: 'dating' },
+        // { text: this.letterObj.from },
+
+        // { text: 'To', style: 'subheader' },
+        // this.letterObj.to,
+
+        // { text: this.letterObj.text, style: 'story', margin: [0, 20, 0, 20] },
+        {
+          table: {
+            // headers are automatically repeated if the table spans over multiple pages
+            // you can declare how many rows should be treated as headers
+            headerRows: 1, fontSize: 16,
+            body: data, style: 'body',
+
+            //  [
+            //   ['Sr.'.bold, 'Name'.bold, 'Amount Payable'.bold, 'Time'.bold, 'Amount'.bold],
+            //   // for(int i=0;i <= 3;i++ ){},
+            //   ['Value 1', 'Value 2', 'Value 3', 'Value 4', 'value 5'],
+            //   ['Value 1', 'Value 2', 'Value 3', 'Value 4', 'value 5'],
+
+            // ]
+
+          },
+          style: 'table',
+          layout: {
+            hLineWidth: function (rowIndex, node) {
+              return (rowIndex == 1) ? 2 : 1;
+            },
+            // hLineColor: function (rowIndex, node, columnIndex) {
+            //   return (rowIndex == 0) ? '#FF33F9' : null;
+            // },
+            fillColor: function (rowIndex, node, columnIndex) {
+              if (rowIndex == 0) {
+                return '#4990e2';
+              } else {
+                return (rowIndex % 2 === 0) ? '#e5f1ff' : null;
+              }
+            },
+          }
+        }
+      ],
+      styles: {
+        title: {
+          fontSize: 16,
+          alignment: 'auto',
+          bold: true,
+          color: 'red'
+        },
+        table: {
+          fontSize: 8,
+          alignment: 'auto'
+        },
+
+        body: {
+
+          alignment: 'auto',
+
+        },
+        tableHeader: {
+          bold: true,
+          fontSize: 13,
+          color: 'green'
+        },
+        dating: {
+          bold: true,
+          fontSize: 8,
+          color: 'grey'
+        }
+      },
+
+    }
+
+    this.downloadPdf2(docDefinition);
+    this.arr = [];
+  }
+
+  downloadPdf2(docDefinition) {
+    let directoryPath = "";
+    if (this.plt.is("ios")) {
+      directoryPath = this.file.documentsDirectory;
+    }
+    if (this.plt.is("android")) {
+      directoryPath = this.file.externalRootDirectory;
+    }
+
+    if (this.plt.is("android") || this.plt.is("ios")) {
+      pdfMake.createPdf(docDefinition).getBuffer((buffer => {
+        var blob = new Blob([buffer], { type: 'application/pdf' });
+        const fileName = "misreport.pdf";
+        this.file.writeFile(directoryPath, fileName, blob, { replace: true })
+          .then(fileEntry => {
+
+            if (fileEntry) {
+
+              if (fileEntry.isFile) {
+                this.displayCordovaToast("File Generated");
+              }
+
+              this.file.checkFile(directoryPath, fileName).then((exist => {
+                this.filePath.resolveNativePath(directoryPath + fileName).then((pathIs => {
+                }));
+                if (this.plt.is("ios")) {
+                  this.document.viewDocument(directoryPath + fileName, 'application/pdf', {});
+                } else {
+                  let mimetype = 'application/pdf';
+                  this.fileOpener.open(directoryPath + fileName, mimetype)
+                    .then((exist) => console.log('File is opened' + JSON.stringify(exist)))
+                    .catch(e => alert("file is" + JSON.stringify(e)));
+                }
+              })
+              ).catch(err => {
+                alert('Directory' + JSON.stringify(err));
+              });
+            }
+          })
+          .catch(err => {
+            alert('Directory does not exist');
+          })
+      }));
+    } else {
+      this.pdfObj = pdfMake.createPdf(docDefinition);
+      this.pdfObj.download();
+    }
+  }
+  viewPhoto(imgData) {
+    this.photoViewer.show(imgData,'',{share:true});
+  }
+
+  increFont() {
+    let elementTagArr = [];
+    const h1 = document.getElementsByTagName('h1');
+    const h2 = document.getElementsByTagName('h2');
+    const h3 = document.getElementsByTagName('h3');
+    const h4 = document.getElementsByTagName('h4');
+    const h5 = document.getElementsByTagName('h5');
+    const h6 = document.getElementsByTagName('h6');
+    const p = document.getElementsByTagName('p');
+    const caption = document.getElementsByTagName('caption');
+    const td = document.getElementsByTagName('td');
+    const th = document.getElementsByTagName('th');
+    const body = document.getElementsByTagName('body');
+    const label = document.getElementsByTagName('ion-label');
+    const button = document.getElementsByTagName('ion-button');
+    const marquee = document.getElementsByTagName('marquee');
+    const title = document.getElementsByTagName('ion-title');
+
+    elementTagArr.push(body);
+    elementTagArr.push(h1);
+    elementTagArr.push(h2);
+    elementTagArr.push(h3);
+    elementTagArr.push(h4);
+    elementTagArr.push(h5);
+    elementTagArr.push(h6);
+    elementTagArr.push(p);
+    elementTagArr.push(caption);
+    elementTagArr.push(td);
+    elementTagArr.push(th);
+    elementTagArr.push(label);
+    elementTagArr.push(button);
+    elementTagArr.push(marquee);
+    elementTagArr.push(title);
+
+    for (let z = 0; z <= elementTagArr.length; z++) {
+      try {
+        for (let i = 0; elementTagArr[z].length > i; i++) {
+          elementTagArr[z][i].setAttribute('style', `font-size: ${this.fontSize}rem !important`);
+        }
+      } catch (error) {
+
+      }
+      /*  const h2 = document.getElementsByTagName('h2');
+   
+       for (let i = 0; h2.length > i; i++) {
+         h2[i].setAttribute('style', `font-size: ${this.fontSize}rem !important`);
+       }
+   
+       // for (let i = 0; h2.length > i; i++) {
+       //   h2[i].setAttribute('style', `font-size: ${this.fontSize}rem !important`);
+       // }
+   
+       // for (let i = 0; label.length > i; i++) {
+       //   label[i].setAttribute('style', `font-size: ${this.fontSize}rem !important`);
+       // }
+   
+       for (let i = 0; label.length > i; i++) {
+         label[i].setAttribute('style', `font-size: ${this.fontSize}rem !important`);
+       } */
+
+    }
+
+  }
+
+  // Getting callingObjectObjectStr from frame SQL
+  getCallingObjectCodeArr(objData) {
+    let callingObjectCodeArr = []
+    if (objData) {
+      for (let obj of objData) {
+        let key = "CALLING_OBJECT_CODE";
+        for (let keySet in obj) {
+          if (key == keySet) {
+            let callingObjectSet: any = {};
+            callingObjectSet.key = obj.ROWNUMBER;
+            callingObjectSet.value = obj.CALLING_OBJECT_CODE;
+            callingObjectCodeArr.push(callingObjectSet);
+          }
+        }
+      }
+    }
+    return callingObjectCodeArr;
+  } // End Method
+  // Getting callingObjectObjectStr from frame SQL End
+
+
+  // ----------Getting Code-Value pair from String (code~value$$code~value)
+  getCodeValueJsonArr(codeValueStr) {
+    if (codeValueStr) {
+      let codeValueJsonArr: any = [];
+      if (codeValueStr.indexOf("$$") > -1) {
+        let codeValuePairArr: any = codeValueStr.split("$$");
+        if (codeValuePairArr) {
+          for (let codeValuePair of codeValuePairArr) {
+            if (codeValuePair.indexOf("~")) {
+              let codeValueData: any = {}
+              let codeValue: any = codeValuePair.split("~");
+              codeValueData.head = codeValue[0];
+              codeValueData.objectCode = codeValue[1];
+              codeValueJsonArr.push(codeValueData);
+            }
+          }
+        }
+      }
+      return codeValueJsonArr;
+    }
+  }// End Method
+
+  // ----------Getting Code-Value pair from String (code~value$$code~value)
+
+  //---------------------------------------------Demo Data---------------------------------------------------------------//
+  public jsonData: any =
+    { "responseStatus": "success", "responseMsg": null, "responseData": { "Level1_Keys": ["object_code", "object_name", "apps_code_str", "home_object_code", "apps_code", "apps_type", "apps_name", "operation_mode_str", "apps_working_mode", "apps_page_nos", "tnature_str", "Level2"], "Level2_Keys": ["object_code", "apps_page_no", "apps_page_name", "apps_page_type", "db_table_name", "db_table_pkey", "Level3"], "Level3_Keys": ["apps_page_frame_seqid", "object_code", "apps_page_no", "apps_frame_seqno", "apps_page_frame_name", "apps_frame_type", "createddate", "closeddate", "flag", "no_of_records", "on_frame_load_str", "Level4"], "Level4_Keys": ["object_code", "apps_page_no", "apps_page_frame_seqid", "apps_item_seqid", "design_control_type", "Level5"], "Level5_Keys": ["apps_page_no", "apps_page_frame_seqid", "apps_item_seqid", "parent_item_seqid", "item_name", "prompt_name", "item_db_name", "item_seqno", "datatype", "item_type", "item_size", "format_mask", "item_default_value", "data_required_flag", "item_visible_flag", "item_enable_flag", "from_value", "to_value", "tool_tip", "display_setting_str", "formula_str", "session_hold_flag", "calling_object_code", "calling_pageno", "calling_parameter_str", "user_code", "lastupdate", "flag", "associate_page_frame_seqid", "db_table_name", "mirror_item_seqid", "apps_frame_seqno", "design_control_type", "lov_code", "item_sub_type", "click_events_str", "object_code", "item_filter_flag", "calling_frame_seqid_str", "group_no_str", "aliases"], "Values": [["SALE-CONT1", "Sale Contract", "#EMP_DR#", "EMP_DR_HP", "EMP_DR", "M", "Employee Reporting", null, "P", "2", null, [["SALE-CONT1", "1", "Sales Contract", null, null, null, [["50", "SALE-CONT1", "1", "1", "Sale Contract", "CANVAS", "10-MAY-19", null, null, null, null, [["SALE-CONT1", "1", "50", "246", null, [["1", "50", "246", null, "SERIES", "SERIES", "SERIES", "1", "VARCHAR2", "L", "20", null, null, "F", "T", "D", null, null, null, null, null, "P", null, null, null, "SHASHANK", "06-MAY-19", null, null, null, null, null, null, "FIND_SERIES_SC", null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "247", null, "EMP_CODE", "EMP_CODE", "EMP_CODE", "2", "VARCHAR2", "T", "100", null, "EMP_CODE", "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "07-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "248", null, "ENTITY_CODE", "Entity Code", "ENTITY_CODE", "3", "VARCHAR2", "T", "20", null, "M3", "F", "F", "T", null, null, "Entity Code", null, null, "F", null, null, null, "SHASHANK", "08-MAY-19", null, null, null, null, null, null, null, "D", null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "249", null, "TCODE", "TCode", "TCODE", "4", "VARCHAR2", "T", "20", null, "E", "F", "F", "T", null, null, "TCode", null, null, "F", null, null, null, "SHASHANK", "09-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "250", null, "VRNO", "VRNO", "VRNO", "5", "VARCHAR2", "T", "100", null, null, "T", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, "SHASHANK", "10-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "255", null, [["1", "50", "255", null, "ACC_CODE", "Party", "ACC_CODE", "9", "VARCHAR2", "L", "100", null, null, "F", "T", "T", null, null, "Party Name", null, null, "PHB", null, null, null, "SHASHANK", "15-MAY-19", null, null, null, null, null, null, "FIND_PARTY_SC", null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "254", null, "CURRENCY_CODE", "Curency Code", "CURRENCY_CODE", "11", "VARCHAR2", "T", "20", null, "INR", "F", "F", "T", null, null, "Currency Code", null, null, "F", null, null, null, "SHASHANK", "14-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "257", null, "DIV_CODE", "DIV_CODE", "DIV_CODE", "12", "VARCHAR2", "L", "100", null, null, "T", "F", "D", null, null, null, null, null, "T", null, null, null, "SHASHANK", "17-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "258", null, "LASTUPDATE", "LASTUPDATE", "LASTUPDATE", "13", "DATETIME", "DT", "100", null, "sysdate", "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "18-MAY-19", null, null, null, null, null, null, null, "DT", null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "259", null, "EXCHANGE_RATE", "Exchange Rate", "EXCHANGE_RATE", "14", "VARCHAR2", "T", "100", null, "1", "F", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "19-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "262", null, "USER_CODE", "User Code", "USER_CODE", "14", "VARCHAR2", "DD", "100", null, "USER_CODE", "F", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "22-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "364", null, "STAX_CODEFOR", "CODEFOR", "STAX_CODEFOR", "15", "VARCHAR2", "T", "100", null, null, "F", "F", "F", null, null, "CodeFor", null, null, "PHB", null, null, null, "SHASHANK", "01-SEP-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "365", null, [["1", "50", "365", null, "PAYMENT_MODE", "Payment Mode", "PAYMENT_MODE", "15", "VARCHAR2", "DD", "100", null, null, "F", "T", "T", null, null, "CodeFor", null, null, "F", null, null, null, "SHASHANK", "02-SEP-19", null, null, null, null, null, null, "DD_PAYMENT_MODE", null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "261", null, [["1", "50", "261", null, "ADDON_CODE", "ADDON", "ADDON_CODE", "16", "VARCHAR2", "DD", "100", null, null, "F", "T", "T", null, null, "Addon ", null, null, "P", null, null, null, "SHASHANK", "21-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "263", null, [["1", "50", "263", null, "FREIGHT_BASIS", "Freight Basis", "FREIGHT_BASIS", "19", "VARCHAR2", "DD", "100", null, null, "F", "T", "T", null, null, "Frieght Basis", null, null, "F", null, null, null, "SHASHANK", "23-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "264", null, "AMENDNO", "AMENDNO", "AMENDNO", "20", "VARCHAR2", "T", "100", null, "0", "F", "F", "T", null, null, "Entity Code", null, null, "F", null, null, null, "SHASHANK", "24-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "265", null, "AMENDDATE", "AMENDDATE", "AMENDDATE", "21", "DATETIME", "T", "100", null, "sysdate", "T", "F", "T", null, null, "AMENDDATE", null, null, "F", null, null, null, "SHASHANK", "25-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "266", null, [["1", "50", "266", null, "TRANTYPE", "Sale Type", "TRANTYPE", "22", "VARCHAR2", "DD", "50", null, null, "F", "T", "T", null, null, "Trantyppe", null, null, "F", null, null, null, "SHASHANK", "26-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "268", null, [["1", "50", "268", null, "FREIGHT_RATE", "Freight Rate", "FREIGHT_RATE", "24", "NUMBER", "N", "100", null, null, "T", "T", "T", null, null, "Freight Rate", null, null, "F", null, null, null, "SHASHANK", "28-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "269", null, [["1", "50", "269", null, "BROKERAGE_BASIS", "Brokerage Basis", "BROKERAGE_BASIS", "25", "VARCHAR2", "DD", "100", null, null, "T", "T", "T", null, null, "Trantyppe", null, null, "F", null, null, null, "SHASHANK", "29-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "270", null, [["1", "50", "270", null, "PAYMENT_DUEDAYS", "Payment duedays", "PAYMENT_DUEDAYS", "26", "NUMBER", "T", "100", null, null, "T", "T", "T", null, null, "Payment DueDays", null, null, "F", null, null, null, "SHASHANK", "30-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "271", null, [["1", "50", "271", null, "VALIDUPTO_DATE", "Valid up to date", "VALIDUPTO_DATE", "27", "DATE", "DT", "100", null, null, "T", "T", "T", null, null, "Valid up to", null, null, "F", null, null, null, "SHASHANK", "31-MAY-19", null, null, null, null, null, null, null, "D", null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "272", null, [["1", "50", "272", null, "DELIVERY_FROM_SLNO", "Delivery From", "DELIVERY_FROM_SLNO", "28", "VARCHAR2", "DD", "100", null, null, "T", "T", "T", null, null, "Delivery from slno", null, null, "F", null, null, null, "SHASHANK", "01-JUN-19", null, null, null, null, null, null, "FIND_DELIVERY_FROM_SLNO", null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "273", null, [["1", "50", "273", null, "DELIVERY_TO_SLNO", "Delivery To", "DELIVERY_TO_SLNO", "29", "VARCHAR2", "DD", "100", null, null, "T", "T", "T", null, null, "Delivery to slno", null, null, "F", null, null, null, "SHASHANK", "02-JUN-19", null, null, null, null, null, null, "FIND_DELIVERY_TO_SLNO", null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "260", null, [["1", "50", "260", null, "STAX_CODE", "Tax Code", "STAX_CODE", "29.2", "VARCHAR2", "DD", "100", null, null, "F", "T", "T", null, null, "Stax Code", null, null, "PHB", null, null, null, "SHASHANK", "20-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "274", null, [["1", "50", "274", null, "BROKER_CODE", "Broker Code", "BROKER_CODE", "30", "VARCHAR2", "L", "100", null, null, "T", "T", "T", null, null, "Broker Code", null, null, "T", null, null, null, "SHASHANK", "03-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "275", null, "IRFIELD1", "irfield1", "IRFIELD1", "31", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "04-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "267", null, [["1", "50", "267", null, "ENTRY_REMARK", "Entry Remark ", "ENTRY_REMARK", "31", "VARCHAR2", "T", "100", null, null, "T", "T", "T", null, null, "Entry Remark", null, null, "F", null, null, null, "SHASHANK", "27-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "428", null, [["1", "50", "428", null, "NEXT_BUTTON", "NEXT PAGE", null, "31.1", "BUTTON", "BT", "40", null, null, "T", "T", "T", null, null, null, null, null, null, "EMP_DR_HP", "2", null, "SHASHANK", "06-MAY-19", null, null, null, null, null, null, null, "SIMPLE_TEXT_BUTTON", "NEXT_PAGE", "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "276", null, "IRFIELD2", "irfield2", "IRFIELD2", "32", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "05-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "277", null, "IRFIELD3", "irfield3", "IRFIELD3", "33", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "06-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "278", null, "IRFIELD4", "irfield4", "IRFIELD4", "34", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "07-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "279", null, "IRFIELD5", "irfield5", "IRFIELD5", "35", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "08-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "280", null, "IRFIELD6", "irfield6", "IRFIELD6", "36", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "09-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "281", null, "IRFIELD7", "irfield7", "IRFIELD7", "37", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "10-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "282", null, "IRFIELD8", "irfield8", "IRFIELD8", "38", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "11-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "283", null, "IRFIELD9", "irfield9", "IRFIELD9", "39", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "12-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "284", null, "IRFIELD10", "irfield10", "IRFIELD10", "40", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "13-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "285", null, "IRFIELD11", "irfield11", "IRFIELD11", "41", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "14-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "286", null, "IRFIELD12", "irfield12", "IRFIELD12", "42", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "15-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "287", null, "IRFIELD13", "irfield13", "IRFIELD13", "43", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "16-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "288", null, "IRFIELD14", "irfield14", "IRFIELD14", "44", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "17-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "289", null, "IRFIELD15", "irfield15", "IRFIELD15", "45", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "18-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "290", null, "IRFIELD16", "irfield16", "IRFIELD16", "46", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "19-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "291", null, "IRFIELD17", "irfield17", "IRFIELD17", "47", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "20-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "292", null, "IRFIELD18", "irfield18", "IRFIELD18", "48", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "21-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "293", null, "IRFIELD19", "irfield19", "IRFIELD19", "49", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "22-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "294", null, "IRFIELD20", "irfield20", "IRFIELD20", "50", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "23-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "295", null, "DRAMT", "DRAMT", "DRAMT", "51", "VARCHAR2", "T", "51", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "24-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "296", null, "AFCODE2", "afcode2", "AFCODE2", "53", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "25-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "297", null, "AFCODE3", "afcode3", "AFCODE3", "54", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "26-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "298", null, "AFCODE4", "afcode4", "AFCODE4", "55", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "27-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "299", null, "AFCODE5", "afcode5", "AFCODE5", "56", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "28-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "300", null, "AFCODE6", "afcode6", "AFCODE6", "57", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "29-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "301", null, "AFCODE7", "afcode7", "AFCODE7", "58", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "30-JUN-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "302", null, "AFCODE8", "afcode8", "AFCODE8", "59", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "01-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "303", null, "AFCODE9", "afcode9", "AFCODE9", "60", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "02-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "304", null, "AFCODE10", "afcode10", "AFCODE10", "61", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "03-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "305", null, "AFCODE11", "afcode11", "AFCODE11", "62", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "04-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "306", null, "AFCODE12", "afcode12", "AFCODE12", "63", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "05-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "307", null, "AFCODE13", "afcode13", "AFCODE13", "64", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "06-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "308", null, "AFCODE14", "afcode14", "AFCODE14", "65", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "07-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "309", null, "AFCODE15", "afcode15", "AFCODE15", "66", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "08-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "310", null, "AFCODE16", "afcode16", "AFCODE16", "67", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "09-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "311", null, "AFCODE17", "afcode17", "AFCODE17", "68", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "10-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "312", null, "AFCODE18", "afcode18", "AFCODE18", "69", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "11-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "313", null, "AFRATE2", "afrate2", "AFRATE2", "71", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "12-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "314", null, "AFRATE3", "afrate3", "AFRATE3", "72", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "13-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "315", null, "AFRATE4", "afrate4", "AFRATE4", "73", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "14-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "316", null, "AFRATE5", "afrate5", "AFRATE5", "74", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "15-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "317", null, "AFRATE6", "afrate6", "AFRATE6", "75", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "16-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "318", null, "AFRATE7", "afrate7", "AFRATE7", "76", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "17-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "319", null, "AFRATE8", "afrate8", "AFRATE8", "77", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "18-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "320", null, "AFRATE9", "afrate9", "AFRATE9", "78", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "19-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "321", null, "AFRATE10", "afrate10", "AFRATE10", "79", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "20-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "322", null, "AFRATE11", "afrate11", "AFRATE11", "80", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "21-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "323", null, "AFRATE12", "afrate12", "AFRATE12", "81", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "22-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "324", null, "AFRATE13", "afrate13", "AFRATE13", "82", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "23-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "325", null, "AFRATE14", "afrate14", "AFRATE14", "83", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "24-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "326", null, "AFRATE15", "afrate15", "AFRATE15", "84", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "25-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "327", null, "AFRATE16", "afrate16", "AFRATE16", "85", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "26-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "328", null, "AFRATE17", "afrate17", "AFRATE17", "86", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "27-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "329", null, "AFRATE18", "afrate18", "AFRATE18", "87", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "28-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "330", null, "AFLOGIC2", "aflogic2", "AFLOGIC2", "89", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "29-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "347", null, "AFRATEI2", "afrateI2", "AFRATEI2", "89", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "15-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "331", null, "AFLOGIC3", "aflogic3", "AFLOGIC3", "90", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "30-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "348", null, "AFRATEI3", "afrateI3", "AFRATEI3", "90", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "16-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "332", null, "AFLOGIC4", "aflogic4", "AFLOGIC4", "91", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "31-JUL-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "349", null, "AFRATEI4", "afrateI4", "AFRATEI4", "91", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "17-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "333", null, "AFLOGIC5", "aflogic5", "AFLOGIC5", "92", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "01-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "350", null, "AFRATEI5", "afrateI5", "AFRATEI5", "92", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "18-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "334", null, "AFLOGIC6", "aflogic6", "AFLOGIC6", "93", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "02-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "351", null, "AFRATEI6", "afrateI6", "AFRATEI6", "93", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "19-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "352", null, "AFRATEI7", "afrateI7", "AFRATEI7", "94", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "20-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "335", null, "AFLOGIC7", "aflogic7", "AFLOGIC7", "94", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "03-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "336", null, "AFLOGIC8", "aflogic8", "AFLOGIC8", "95", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "04-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "353", null, "AFRATEI8", "afrateI8", "AFRATEI8", "95", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "21-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "337", null, "AFLOGIC9", "aflogic9", "AFLOGIC9", "96", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "05-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "354", null, "AFRATEI9", "afrateI9", "AFRATEI9", "96", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "22-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "338", null, "AFLOGIC10", "aflogic10", "AFLOGIC10", "97", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "06-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "355", null, "AFRATEI10", "afrateI10", "AFRATEI10", "97", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "23-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "339", null, "AFLOGIC11", "aflogic11", "AFLOGIC11", "98", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "07-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "356", null, "AFRATEI11", "afrateI11", "AFRATEI11", "98", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "24-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "340", null, "AFLOGIC12", "aflogic12", "AFLOGIC12", "99", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "08-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "357", null, "AFRATEI12", "afrateI12", "AFRATEI12", "99", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "25-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "341", null, "AFLOGIC13", "aflogic13", "AFLOGIC13", "100", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "09-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "358", null, "AFRATEI13", "afrateI13", "AFRATEI13", "100", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "26-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "342", null, "AFLOGIC14", "aflogic14", "AFLOGIC14", "101", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "10-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "359", null, "AFRATEI14", "afrateI14", "AFRATEI14", "101", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "27-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "360", null, "AFRATEI15", "afrateI15", "AFRATEI15", "102", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "28-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "343", null, "AFLOGIC15", "aflogic15", "AFLOGIC15", "102", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "11-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "344", null, "AFLOGIC16", "aflogic16", "AFLOGIC16", "103", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "12-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "361", null, "AFRATEI16", "afrateI16", "AFRATEI16", "103", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "29-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "362", null, "AFRATEI17", "afrateI17", "AFRATEI17", "104", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "30-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "345", null, "AFLOGIC17", "aflogic17", "AFLOGIC17", "104", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "13-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "363", null, "AFRATEI18", "afrateI18", "AFRATEI18", "105", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "31-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["1", "50", "346", null, "AFLOGIC18", "aflogic18", "AFLOGIC18", "105", "VARCHAR2", "T", "200", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, "SHASHANK", "14-AUG-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "252", null, "CONSIGNEE_CODE", "Consignee Name", "CONSIGNEE_CODE", "123", "VARCHAR2", "T", "50", null, null, "F", "F", "T", null, null, "Consignee Name", null, null, "F", null, null, null, "SHASHANK", "12-MAY-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "366", null, "APPROVEDDATE", "APPROVEDDATE", "APPROVEDDATE", "125", "DATETIME", "T", "100", null, null, "T", "F", "F", null, null, null, null, null, "F", null, null, null, "SHASHANK", "03-SEP-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "1", "50", "1", null, [["1", "50", "367", null, "APPROVEDBY", "APPROVEDBY", "APPROVEDBY", "126", "VARCHAR2", "T", "100", null, null, "F", "F", "F", null, null, null, null, null, "F", null, null, null, "SHASHANK", "04-SEP-19", null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]]]]]], ["SALE-CONT1", "2", "Order Body", null, null, null, [["51", "SALE-CONT1", "2", "1", "Sale Contract", "CANVAS", "10-MAY-19", null, null, null, null, [["SALE-CONT1", "2", "51", "1", null, [["2", "51", "368", null, "ACC_CODE", "Party Name", "ACC_CODE", "1", "VARCHAR2", "T", "10000", null, null, "F", "F", "D", null, null, "Acc code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "369", null, "CURRENCY_CODE", "Curency Code", "CURRENCY_CODE", "2", "VARCHAR2", "T", "20", null, null, "F", "F", "D", null, null, "Currency Code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "386", null, "item_category", "ITEM CATG", "item_category", "3", "VARCHAR2", "T", "100", null, null, "T", "F", "D", null, null, "Entity Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["2", "51", "370", null, "ENTITY_CODE", "Entity Code", "ENTITY_CODE", "3", "VARCHAR2", "T", "20", null, "M3", "F", "F", "T", null, null, "Entity Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "371", null, "TCODE", "TCode", "TCODE", "4", "VARCHAR2", "T", "20", null, "E", "F", "F", "T", null, null, "TCode", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "372", null, "VRNO", "VRNO", "VRNO", "5", "VARCHAR2", "T", "20", null, null, "T", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "373", null, "VRDATE", "VRDATE", "VRDATE", "6", "DATETIME", "T", "50", null, "sysdate", "F", "F", "T", null, null, "VRDATE", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "374", null, "SLNO", "SLNO", "SLNO", "7", "NUMBER", "T", "20", null, null, "T", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "375", null, "DEPT_CODE", "Party", "DEPT_CODE", "8", "VARCHAR2", "T", "100", null, null, "T", "F", "T", null, null, "Retailer Name", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "376", null, "CONTRACT_SLNO", "SLNO", "CONTRACT_SLNO", "9", "NUMBER", "T", "20", null, null, "F", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "420", null, "AMENDNO", "AMENDNO", "AMENDNO", "10", "VARCHAR2", "T", "20", null, "0", "F", "F", "T", null, null, "Amendno", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "378", null, [["2", "51", "378", null, "ITEM_CODE", "Listed  Item  Name", "ITEM_CODE", "11", "VARCHAR2", "L", "200", null, null, "F", "T", "T", null, null, "Select Item", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "423", null, "CURRENCY_CODE", "Curency Code", "CURRENCY_CODE", "11", "VARCHAR2", "T", "20", null, "INR", "F", "F", "D", null, null, "Currency Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "380", null, [["2", "51", "380", null, "AQTYORDER", "Quantity", "AQTYORDER", "12", "NUMBER", "N", "30", null, null, "F", "T", "T", null, null, "Quantity", null, null, "P", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "379", null, [["2", "51", "379", null, "FC_RATE", "Rate", "FC_RATE", "14", "NUMBER", "N", "30", null, null, "F", "T", "T", null, null, "Rate", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "389", null, "TAX_RATE1", "Tax Rate1", "TAX_RATE1", "16", "VARCHAR2", "T", "100", null, null, "T", "F", "T", null, null, "Stax Rate", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "392", null, "TAX_AMOUNT1", "Tax Amount", "TAX_AMOUNT1", "17", "NUMBER", "N", "30", null, null, "T", "F", "T", null, null, "Tax Amount", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "387", null, "AUM", "AUM", "AUM", "18", "VARCHAR2", "T", "30", null, null, "T", "F", "T", null, null, "UM", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "383", null, [["2", "51", "383", null, "TOLERANCE_BASIS", "Tolerance Basis", "TOLERANCE_BASIS", "19", "VARCHAR2", "DD", "50", null, null, "T", "T", "T", null, null, "Tolarnce Basis", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "388", null, [["2", "51", "388", null, "TOLERANCE_QTY", "Tolarnce Qty", "TOLERANCE_QTY", "20", "NUMBER", "T", "100", null, null, "T", "T", "T", null, null, "Tolarance quantity", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "384", null, [["2", "51", "384", null, "DIV_CODE", "DIV_CODE", "DIV_CODE", "22", "VARCHAR2", "L", "50", null, "SM", "T", "T", "T", null, null, null, null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "390", null, "STAX_CODE", "STax Code", "STAX_CODE", "23", "VARCHAR2", "T", "50", null, null, "T", "F", "D", null, null, "Stax Code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "391", null, [["2", "51", "391", null, "IRATE", "Discount", "IRATE", "24", "NUMBER", "N", "30", null, null, "T", "T", "F", null, null, "Discount", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "377", null, [["2", "51", "377", null, "REMARK", "Remark", "REMARK", "25", "VARCHAR2", "T", "100", null, null, "T", "T", "T", null, null, "Remark", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "464", null, [["2", "51", "464", null, "ADD_ITEM", "Add-Item", null, "25.1", "VARCHAR2", "BT", "100", null, null, "T", "T", "T", null, null, null, null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, "SIMPLE_TEXT_BUTTON", "ADD_ITEM", "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "531", null, [["2", "51", "531", null, "ADD_ITEM", "NEXT PAGE", null, "25.2", "VARCHAR2", "BT", "100", null, null, "T", "T", "T", null, null, null, null, null, "T", "EMP_DR_HP", "3", null, null, null, null, null, null, null, null, null, null, "SIMPLE_TEXT_BUTTON", "NEXT_PAGE", "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "394", null, "AFIELD1", "afield1", "AFIELD1", "32", "NUMBER", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "395", null, "AFIELD10", "afield10", "AFIELD10", "33", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "396", null, "AFIELD11", "afield11", "AFIELD11", "34", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "397", null, "AFIELD12", "afield12", "AFIELD12", "35", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "398", null, "AFIELD13", "afield13", "AFIELD13", "36", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "399", null, "AFIELD14", "afield14", "AFIELD14", "37", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "400", null, "AFIELD15", "afield15", "AFIELD15", "38", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "401", null, "AFIELD16", "afield16", "AFIELD16", "39", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "402", null, "AFIELD17", "afield17", "AFIELD17", "40", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "403", null, "AFIELD18", "afield18", "AFIELD18", "41", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "404", null, "AFIELD2", "afield2", "AFIELD2", "42", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "405", null, "AFIELD3", "afield3", "AFIELD3", "43", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "406", null, "AFIELD4", "afield4", "AFIELD4", "44", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "407", null, "AFIELD5", "afield5", "AFIELD5", "45", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "408", null, "AFIELD6", "afield6", "AFIELD6", "46", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "409", null, "AFIELD7", "afield7", "AFIELD7", "47", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "410", null, "AFIELD8", "afield8", "AFIELD8", "48", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "412", null, "DRAMT", "DRAMT", "DRAMT", "49", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["2", "51", "411", null, "AFIELD9", "afield9", "AFIELD9", "49", "VARCHAR2", "T", "50", null, null, "T", "F", "T", null, null, null, null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "413", null, "AUMTOUM", "Aumtoum", "AUMTOUM", "51", "VARCHAR2", "T", "20", null, "1", "F", "F", "T", null, null, "Entity Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "414", null, "TAX_AMOUNT", "Tax Amount123", "TAX_AMOUNT", "52", "NUMBER", "N", "30", null, null, "T", "F", "T", null, null, "Tax Amount", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "415", null, "TAX_RATE", "Tax Rate", "TAX_RATE", "53", "VARCHAR2", "T", "100", null, null, "T", "F", "T", null, null, "Stax Rate", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "416", null, "ARATE", "ARATE", "ARATE", "54", "NUMBER", "T", "30", null, "0", "T", "F", "T", null, null, "Total", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "417", null, "RATE", "Rate", "RATE", "55", "NUMBER", "T", "30", null, null, "T", "F", "T", null, null, "Total", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "418", null, "QTYORDER", "Quantity", "QTYORDER", "56", "NUMBER", "N", "30", null, null, "F", "F", "T", null, null, "Quantity", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["2", "51", "422", null, "COST_CODE", "COST_CODE", "COST_CODE", "56", "VARCHAR2", "T", "30", null, "MAPL", "F", "F", "T", null, null, "Quantity", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "419", null, "RATE_UM", "Rate_um", "RATE_UM", "57", "VARCHAR2", "T", "31", null, null, "T", "F", "T", null, null, "UM", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "385", null, "GST_CODE", "GST_CODE", "GST_CODE", "58", "VARCHAR2", "T", "31", null, null, "T", "F", "T", null, null, "GST_CODE", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "51", "1", null, [["2", "51", "421", null, "DELIVERY_TO_SLNO", "Delivery To slno", "DELIVERY_TO_SLNO", "59", "VARCHAR2", "T", "100", null, null, "T", "F", "D", null, null, "Delivery to slno", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]]]], ["142", "SALE-CONT1", "2", "2", "Items", "CARD", null, null, null, null, null, [["SALE-CONT1", "2", "142", "1", null, [["2", "142", "525", null, "ACC_CODE", "Party Name", "ACC_CODE", "1", "VARCHAR2", "TEXT", "10000", null, null, "F", "F", "D", null, null, "Acc code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "465", null, "CURRENCY_CODE", "Curency Code", "CURRENCY_CODE", "2", "VARCHAR2", "TEXT", "20", null, null, "F", "F", "D", null, null, "Currency Code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "466", null, "item_category", "ITEM CATG", "item_category", "3", "VARCHAR2", "TEXT", "100", null, null, "T", "F", "D", null, null, "Entity Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null], ["2", "142", "467", null, "ENTITY_CODE", "Entity Code", "ENTITY_CODE", "3", "VARCHAR2", "TEXT", "20", null, "M3", "F", "F", "T", null, null, "Entity Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "468", null, "TCODE", "TCode", "TCODE", "4", "VARCHAR2", "TEXT", "20", null, "E", "F", "F", "T", null, null, "TCode", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "469", null, "VRNO", "VRNO", "VRNO", "5", "VARCHAR2", "TEXT", "20", null, null, "T", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "470", null, "VRDATE", "VRDATE", "VRDATE", "6", "DATETIME", "TEXT", "50", null, "sysdate", "F", "F", "T", null, null, "VRDATE", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "471", null, "SLNO", "SLNO", "SLNO", "7", "NUMBER", "TEXT", "20", null, null, "T", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "472", null, "DEPT_CODE", "Party", "DEPT_CODE", "8", "VARCHAR2", "TEXT", "100", null, null, "T", "F", "T", null, null, "Retailer Name", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "473", null, "CONTRACT_SLNO", "SLNO", "CONTRACT_SLNO", "9", "NUMBER", "TEXT", "20", null, null, "F", "F", "T", null, null, "VRNO", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "474", null, "AMENDNO", "AMENDNO", "AMENDNO", "10", "VARCHAR2", "TEXT", "20", null, "0", "F", "F", "T", null, null, "Amendno", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "475", null, "CURRENCY_CODE", "Curency Code", "CURRENCY_CODE", "11", "VARCHAR2", "TEXT", "20", null, "INR", "F", "F", "D", null, null, "Currency Code", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "476", null, [["2", "142", "476", null, "ITEM_CODE", "Listed  Item  Name", "ITEM_CODE", "11", "VARCHAR2", "TEXT", "200", null, null, "F", "T", "T", null, null, "Select Item", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "477", null, [["2", "142", "477", null, "AQTYORDER", "Quantity", "AQTYORDER", "12", "NUMBER", "TEXT", "30", null, null, "F", "T", "T", null, null, "Quantity", null, null, "P", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "479", null, [["2", "142", "479", null, "FC_RATE", "Rate", "FC_RATE", "14", "NUMBER", "TEXT", "30", null, null, "F", "T", "T", null, null, "Rate", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "481", null, "TAX_RATE1", "Tax Rate1", "TAX_RATE1", "16", "VARCHAR2", "TEXT", "100", null, null, "T", "F", "T", null, null, "Stax Rate", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "482", null, "TAX_AMOUNT1", "Tax Amount", "TAX_AMOUNT1", "17", "NUMBER", "TEXT", "30", null, null, "T", "F", "T", null, null, "Tax Amount", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "483", null, "AUM", "AUM", "AUM", "18", "VARCHAR2", "TEXT", "30", null, null, "T", "F", "T", null, null, "UM", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "484", null, [["2", "142", "484", null, "TOLERANCE_BASIS", "Tolerance Basis", "TOLERANCE_BASIS", "19", "VARCHAR2", "TEXT", "50", null, null, "T", "T", "T", null, null, "Tolarnce Basis", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "485", null, [["2", "142", "485", null, "TOLERANCE_QTY", "Tolarnce Qty", "TOLERANCE_QTY", "20", "NUMBER", "TEXT", "100", null, null, "T", "T", "T", null, null, "Tolarance quantity", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "487", null, [["2", "142", "487", null, "DIV_CODE", "DIV_CODE", "DIV_CODE", "22", "VARCHAR2", "TEXT", "50", null, "SM", "T", "T", "T", null, null, null, null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "1", null, [["2", "142", "488", null, "STAX_CODE", "STax Code", "STAX_CODE", "23", "VARCHAR2", "TEXT", "50", null, null, "T", "F", "D", null, null, "Stax Code", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "489", null, [["2", "142", "489", null, "IRATE", "Discount", "IRATE", "24", "NUMBER", "TEXT", "30", null, null, "T", "T", "F", null, null, "Discount", null, null, "F", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]], ["SALE-CONT1", "2", "142", "490", null, [["2", "142", "490", null, "REMARK", "Remark", "REMARK", "25", "VARCHAR2", "TEXT", "100", null, null, "T", "T", "T", null, null, "Remark", null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]]]]]], ["SALE-CONT1", "3", "Terms and Conditions", null, null, null, [["143", "SALE-CONT1", "3", "3", "terms and conditios", "CANVAS", null, null, null, null, "frame_sql_populate_data", [["SALE-CONT1", "3", "143", "532", null, [["3", "143", "532", null, "abc", "abc", null, "1", "VARCHAR2", "TEXT", "100", null, null, "T", "T", "T", null, null, null, null, null, "T", null, null, null, null, null, null, null, null, null, null, null, null, null, null, "SALE-CONT1", null, null, null, null]]]]]]], ["SALE-CONT1", "4", "Addons", null, null, null, []]]]] } };
+
+  //---------------------------------------------Demo Data---------------------------------------------------------------//
+}

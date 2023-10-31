@@ -1,0 +1,70 @@
+<!-- <ion-header>
+  <ion-toolbar>
+    <ion-title>forgot-password</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+</ion-content>   -->
+<ion-header>
+  <ion-toolbar color="primary">
+    <!-- <ion-buttons slot="start" *ngIf="!isModal">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons> -->
+    <ion-button slot="start" (click)="closePage()" fill="clear" icon-only start>
+      <ion-icon name="arrow-back" color="light"></ion-icon>
+    </ion-button>
+    <ion-title>
+      Change Password
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="theme-maroon">
+  <ion-content class="login-ion-content page-forgot-password">
+
+    <ion-grid class="login-outer-padding">
+      <ion-row class="login-outer-padding">
+        <div class="login-outer" [style.height]="shouldHeight">
+
+          <form class="loginForm frgtForm" #form="ngForm">
+            <ion-item>
+
+              <ion-label floating>User</ion-label>
+              <ion-input type="text" autocomplete='on' placeholder="Usercode" [(ngModel)]="userCode" name="userCode"
+                required></ion-input>
+
+            </ion-item>
+            <ng-container *ngIf="!otpSent">
+              <ion-button (click)="sendOtp()" shape="round" color="secondary"
+                class="global-btn button-round button-round-md reset-btn" type="submit">
+                Send Otp
+              </ion-button>
+            </ng-container>
+
+            <ng-container *ngIf="otpSent">
+              <ion-item>
+
+                <ion-label floating>OTP</ion-label>
+                <ion-input type="text" autocomplete='on' placeholder="Otp" [(ngModel)]="usrOtp" name="usrOtp" required>
+                </ion-input>
+
+              </ion-item>
+
+              <ion-button (click)="verifyOtp()" shape="round" color="secondary"
+                class="global-btn button-round button-round-md reset-btn" type="submit">
+                Verify Otp
+              </ion-button>
+              <ion-item>
+                <a class="grey-text" (click)="sendOtp()">Resend Otp</a>
+              </ion-item>
+
+            </ng-container>
+
+          </form>
+        </div>
+      </ion-row>
+    </ion-grid>
+  </ion-content>
+</ion-content>

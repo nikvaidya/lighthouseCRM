@@ -1,0 +1,173 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <!-- <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+          </ion-buttons> -->
+          <ion-button slot="start" (click)="closePage()" fill="clear" icon-only start>
+            <ion-icon name="arrow-back" color="light"></ion-icon>
+          </ion-button>
+      <ion-title class="title">Image Uploader</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+<ion-content>
+  <div class="image-grid-container">
+      <ion-row>
+          <ion-col size="12">
+            <div class="text-right">
+            <ion-button size="small">
+              <ion-icon slot="start" name="add"></ion-icon>
+              Add Image
+            </ion-button>
+          </div>
+          </ion-col>
+        </ion-row>
+   <div class="single-image-box">
+     <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+     <div class="box-footer">
+       <ion-icon name="add" class="add-btn blue"></ion-icon>
+     </div>
+   </div>
+   <div class="single-image-box">
+      <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+      <div class="box-footer">
+          <ion-icon name="add" class="add-btn green"></ion-icon>
+      </div>
+    </div>
+    <div class="single-image-box">
+        <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+        <div class="box-footer">
+            <ion-icon name="add" class="add-btn dark"></ion-icon>
+        </div>
+      </div>
+      <div class="single-image-box">
+          <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+          <div class="box-footer">
+              <ion-icon name="add" class="add-btn maroon"></ion-icon>
+          </div>
+        </div>
+        <div class="single-image-box">
+            <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+            <div class="box-footer">
+                <ion-icon name="add" class="add-btn grey"></ion-icon>
+            </div>
+          </div>
+  </div>
+  <div class="image-grid-container">
+      <ion-row>
+          <ion-col size="12">
+            <div class="text-left">
+            <h6>Recommended</h6>
+          </div>
+          </ion-col>
+        </ion-row>
+   <div class="single-image-box">
+     <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+     <div class="box-footer">
+       <ion-row>
+         <ion-col size="8">
+           <span>Image Name</span>
+         </ion-col>
+         <ion-col size="4">
+           <div class="edit-div">
+             <ion-icon name="add" color="primary"></ion-icon>
+             <ion-icon name="trash" color="danger"></ion-icon>
+           </div>
+         </ion-col>
+       </ion-row>
+     </div>
+   </div>
+   <div class="single-image-box">
+      <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+      <div class="box-footer">
+          <ion-row>
+              <ion-col size="8">
+                <span>Image Name</span>
+              </ion-col>
+              <ion-col size="4">
+                <div class="edit-div">
+                  <ion-icon name="add" color="primary"></ion-icon>
+                  <ion-icon name="trash" color="danger"></ion-icon>
+                </div>
+              </ion-col>
+            </ion-row>
+      </div>
+    </div>
+    <div class="single-image-box">
+        <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+        <div class="box-footer">
+            <ion-row>
+                <ion-col size="8">
+                  <span>Image Name</span>
+                </ion-col>
+                <ion-col size="4">
+                  <div class="edit-div">
+                    <ion-icon name="add" color="primary"></ion-icon>
+                    <ion-icon name="trash" color="danger"></ion-icon>
+                  </div>
+                </ion-col>
+              </ion-row>
+        </div>
+      </div>
+      <div class="single-image-box">
+          <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+          <div class="box-footer">
+              <ion-row>
+                  <ion-col size="8">
+                    <span>Image Name</span>
+                  </ion-col>
+                  <ion-col size="4">
+                    <div class="edit-div">
+                      <ion-icon name="add" color="primary"></ion-icon>
+                      <ion-icon name="trash" color="danger"></ion-icon>
+                    </div>
+                  </ion-col>
+                </ion-row>
+          </div>
+        </div>
+        <div class="single-image-box">
+            <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+            <div class="box-footer">
+                <ion-row>
+                    <ion-col size="8">
+                      <span>Image Name</span>
+                    </ion-col>
+                    <ion-col size="4">
+                      <div class="edit-div">
+                        <ion-icon name="add" color="primary"></ion-icon>
+                        <ion-icon name="trash" color="danger"></ion-icon>
+                      </div>
+                    </ion-col>
+                  </ion-row>
+            </div>
+          </div>
+  </div>
+<!-- <div class="image-uploader-container">
+
+  <ion-row>
+    <ion-col size="4">
+      <div class="text-right" style="padding:60px 0;">
+      <ion-button size="small">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Upload Image
+      </ion-button>
+      <div class="or">
+      <span stele="font-size: 15px;font-weight: 600;">OR</span>
+    </div>
+    </div>
+    </ion-col>
+    <ion-col size="4">
+        <div class="drag-drop-container">
+          <span>
+            Drag and Drop Image Here
+          </span>
+        </div>
+      </ion-col>
+      <ion-col size="4">
+          <div class="image-preview-div">
+          <img src="../../../assets/imgs/default-thumbnail.jpg" alt="" srcset="">
+        </div>
+        </ion-col>
+  </ion-row>
+</div> -->
+</ion-content>

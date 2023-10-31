@@ -1,0 +1,238 @@
+import { NavParams, NavController, ModalController, Events } from '@ionic/angular';
+import { Component, OnInit, Input } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { Device } from '@ionic-native/device/ngx';
+import { HttpClient } from '@angular/common/http';
+import { DataService } from 'src/app/services/data.service';
+
+@Component({
+  selector: 'app-appkey-user-info',
+  templateUrl: './appkey-user-info.page.html',
+  styleUrls: ['./appkey-user-info.page.scss'],
+})
+export class AppkeyUserInfoPage implements OnInit {
+
+  thead: any[];
+  tablerows: any[];
+  tablerowsres: any[];
+  searchText: any;
+  appKey:string;
+  appCode:string;
+  public loginValid: any = {};
+
+  @Input() resData: any;
+
+  constructor(navParam: NavParams, private navCtrl: NavController, private modalctrl: ModalController,
+    public globalObjects: GlobalObjectsService,private device:Device,private httpClient:HttpClient,private dataService:DataService, private events:Events) {
+    let res: any = navParam;
+    this.thead =res.data.responseData.HEADING;
+    this.tablerows = res.data.responseData.BODY;
+    this.appKey = res.data.appKeyDetails.app_key;
+    this.appCode = res.data.appKeyDetails.app_code;
+    this.tablerowsres = res.data.responseData.BODY;
+    console.log(this.tablerowsres);
+  }
+
+  ngOnInit() {
+  }
+
+  filterTable() {
+    this.tablerows = this.tablerowsres.filter((item: any) => {
+
+      if (item.user_code && item.user_code.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      } else if (item.client_name && item.client_name.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      }
+      else if (item.password && item.password.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      }
+      else if (item.module && item.module.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      }
+      else if (item.apps_name && item.apps_name.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      }
+    })
+  }
+
+  closeModal() {
+    this.modalctrl.dismiss({
+      'dismissed': true
+    });
+  }
+
+  loginByPass(rowData) {
+   
+    if (this.appKey) {
+      // this.destroyLocalData();
+      let base_url = "http://203.193.167.118:8888/lhsws/getServerDetails";
+      var data = {
+        "parameters": {
+          "appKey": this.appKey,
+          "device_id": this.device.uuid,
+          "device_name": this.device.model
+        }
+      }
+      this.httpClient.post(encodeURI(base_url), data).subscribe(data => {
+        var resData: any = data;
+        var responseData = resData.responseData;
+      
+        if (resData.responseStatus == "success") {
+          this.destroyLocalData();
+
+          var appData: any = {};
+          appData.app_name = resData.responseData.app_name;
+          appData.appkey = this.appKey.toUpperCase();
+          appData.loginFlag = resData.responseData.loginFlag;
+  
+          // alert(appkey.toUpperCase());
+          appData.resData = resData.responseData;
+          var appArr: any = this.globalObjects.getLocallData("appData");
+          if (appArr) {
+            let isExsist = false;
+            for (let app of appArr) {
+              if (app.appkey.toUpperCase() == this.appKey.toUpperCase()) {
+                app = JSON.parse(JSON.stringify(appData));
+                isExsist = true;
+              }
+            }
+            if (!isExsist) {
+              appArr.push(appData);
+            }
+            this.globalObjects.setDataLocally("appData", appArr);
+          } else {
+            appArr = [];
+            appArr.push(appData);
+            this.globalObjects.setDataLocally("appData", appArr);
+          }
+
+          this.globalObjects.setDataLocally("appKey", this.appKey);
+          this.globalObjects.setDataLocally("appCode", this.appCode);
+          var server_url = "http://" + responseData.serverUrl + "/" + responseData.war_name + "/" + responseData.entity + "/" + responseData.dbUrl + "/" + responseData.portNo + "/" + responseData.dbName + "/" + responseData.dbPassword + "/" + responseData.dbSid + "/";
+          var server_url2 = "http://" + responseData.server_url2 + "/" + responseData.war_name + "/" + responseData.entity + "/" + responseData.dbUrl + "/" + responseData.portNo + "/" + responseData.dbName + "/" + responseData.dbPassword + "/" + responseData.dbSid + "/";
+          var server_url3 = "http://" + responseData.server_url3 + "/" + responseData.war_name + "/" + responseData.entity + "/" + responseData.dbUrl + "/" + responseData.portNo + "/" + responseData.dbName + "/" + responseData.dbPassword + "/" + responseData.dbSid + "/";
+          var server_url4 = "http://" + responseData.server_url4 + "/" + responseData.war_name + "/" + responseData.entity + "/" + responseData.dbUrl + "/" + responseData.portNo + "/" + responseData.dbName + "/" + responseData.dbPassword + "/" + responseData.dbSid + "/";
+          this.globalObjects.setDataLocally("isAppLaunch", true);
+          this.globalObjects.setDataLocally("scopeUrl", server_url);
+          this.globalObjects.setDataLocally("server_url1", server_url);
+          this.globalObjects.setDataLocally("server_url2", server_url2);
+          this.globalObjects.setDataLocally("server_url3", server_url3);
+          this.globalObjects.setDataLocally("server_url4", server_url4);
+          this.globalObjects.setDataLocally("dbName",responseData.dbName);
+          this.globalObjects.setScopeUrl(server_url);
+          this.globalObjects.setDataLocally("entityCodeStr", responseData.entity_code_str);
+          this.globalObjects.checkAndSetScopeUrl().then(data => {
+          
+            let ec = responseData.entity_code_str.split('#');
+            this.globalObjects.setDataLocally("entityCode", ec[0]);
+
+          }, err => {  })
+
+
+          let deviceValidation = this.globalObjects.getLocallData("device_validation");
+          let token = this.globalObjects.getLocallData("device_token");
+          let appKey = this.globalObjects.getLocallData("appKey");
+          let entityCodeStr = this.globalObjects.getLocallData("entityCodeStr");
+          var appDataArr: any = this.globalObjects.getLocallData("appData");
+          let userDetails = this.globalObjects.getLocallData("userDetails");
+          var loginFlag: any;
+
+          if (appDataArr) {
+            for (let app of appDataArr) {
+              if (app.appkey.toUpperCase() == appKey.toUpperCase()) {
+                loginFlag = app.loginFlag;
+              }
+            }
+          }
+          if (loginFlag) {
+            loginFlag = loginFlag;
+          }
+          else {
+            loginFlag = "";
+          }
+          entityCodeStr = entityCodeStr ? entityCodeStr : "";
+
+          let url = 'login?userId=' + (rowData.user_code).trim() + '&password=' + encodeURIComponent(rowData.password) +
+            '&deviceId=' + encodeURIComponent(this.globalObjects.device.uuid) + '&deviceName=' + encodeURIComponent(this.globalObjects.device.model)
+            + '&notificationToken=' + encodeURIComponent(token) + "&appKey=" + appKey + "&appkeyValidationFlag=" + deviceValidation + "&OTPFlag=" + loginFlag
+            + "&entityCodeStr=" + encodeURIComponent(entityCodeStr) + "&appCode=" + this.appCode;
+            console.log("Login url: "+ url);
+          this.dataService.getData(url).then(data => {
+            this.loginValid = data;
+            if (this.loginValid.responseMsg === "User is authenticated") {
+              this.closeModal();
+              if (this.loginValid.responseStatus === "success") {
+                this.globalObjects.setDataLocally('licExp', 1);
+                // let div_code = "";
+                if (this.loginValid.responseData.division) {
+                  if (this.loginValid.responseData.division.indexOf(" ") > -1) {
+                    this.loginValid.responseData.div_code = this.loginValid.responseData.division.split(" ")[0];
+                  }
+                  else if (this.loginValid.responseData.division.indexOf(",") > -1) {
+                    this.loginValid.responseData.div_code = this.loginValid.responseData.division.split(",")[0];
+                  }
+                  else if (this.loginValid.responseData.division.indexOf("#") > -1) {
+                    this.loginValid.responseData.div_code = this.loginValid.responseData.division.split("#")[0];
+                  } else {
+                    this.loginValid.responseData.div_code = this.loginValid.responseData.division;
+                  }
+                }
+                this.loginValid.responseData.password = rowData.password
+
+                if (this.loginValid.responseData.entity_code) {
+                  if (this.loginValid.responseData.entity_code.indexOf("#") > -1) {
+                    this.loginValid.responseData.entity_code = this.loginValid.responseData.entity_code.split("#")[0];
+                  } else if (this.loginValid.responseData.entity_code.indexOf(",") > -1) {
+                    this.loginValid.responseData.entity_code = this.loginValid.responseData.entity_code.split(",")[0];
+                  } else if (this.loginValid.responseData.entity_code.indexOf(" ") > -1) {
+                    this.loginValid.responseData.entity_code = this.loginValid.responseData.entity_code.split(" ")[0];
+                  }
+                }
+                this.globalObjects.setDataLocally("userDetails", this.loginValid.responseData);
+                this.globalObjects.setDataLocally("apptype", this.loginValid.responseData.module);
+               
+                this.navCtrl.navigateRoot('super');
+                this.events.publish("jumptosuper", "refreshevent");
+                //this.events.publish("jumptosuper", "refreshevent");
+              }
+
+            }else{
+                this.navCtrl.navigateRoot('login');
+                this.globalObjects.displayCordovaToast(this.loginValid.responseMsg);
+            }
+          })
+        } else {
+         
+          // this.globalObjects.displayCordovaToast(resData.responseMsg);
+          this.globalObjects.presentToastWithOptions(resData.responseMsg, "errorClass");
+        }
+        this.globalObjects.setDataLocally("device_validation", responseData.device_validation);
+
+      }, err => {
+      
+        this.globalObjects.displayCordovaToast("Something went wrong please try again later!" + err);
+      })
+    }
+
+  }
+
+
+
+  destroyLocalData(){
+
+    this.globalObjects.destroyLocalData("userDetails");
+    this.globalObjects.destroyLocalData("apptype");
+    this.globalObjects.destroyLocalData("scopeUrl");
+    this.globalObjects.destroyLocalData("valueFormat");
+    this.globalObjects.destroyLocalData("partyName");
+    this.globalObjects.destroyLocalData("partyCode");
+    this.globalObjects.destroyLocalData("tabParam");
+    this.globalObjects.destroyLocalData("localNotif");
+    this.globalObjects.destroyLocalData("archieve_Data");
+    this.globalObjects.destroyLocalData("LoginUserAccCode");
+    this.globalObjects.destroyLocalData("app-theme");
+    this.globalObjects.destroyLocalData("");
+
+  }
+}

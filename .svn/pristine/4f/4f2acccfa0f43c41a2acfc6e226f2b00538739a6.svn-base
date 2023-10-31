@@ -1,0 +1,110 @@
+import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { Router } from '@angular/router';
+import { MenuController, AlertController } from '@ionic/angular';
+
+@Component({
+  selector: 'app-appkey-collection',
+  templateUrl: './appkey-collection.page.html',
+  styleUrls: ['./appkey-collection.page.scss'],
+})
+export class AppkeyCollectionPage implements OnInit {
+  appData: any = [];
+  constructor(public globalObjects: GlobalObjectsService,
+    public alertController: AlertController, private router: Router, public menuCtrl: MenuController, private location: Location) {
+  }
+
+  ngOnInit() {
+    this.menuCtrl.enable(false);
+    this.appData = this.globalObjects.getLocallData('appData');
+    console.log("appdata ..>>", this.appData)
+  }
+
+  ngOnDestroy() {
+    this.menuCtrl.enable(true);
+  }
+  ionViewWillEnter(){
+    this.ngOnInit();
+  }
+
+
+  addApp() {
+    // this.navCtrl.push("AppkeyValidationPage");
+    this.router.navigate(['appkey-validation']);
+  }
+
+  goBack() {
+    this.location.back();
+  }
+  async removeApp(i) {
+    const alert = await this.alertController.create({
+      header: 'Are you sure want to remove this App!',
+      message: 'Remove App ?',
+
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+            alert.dismiss(false);
+          }
+        }, {
+          text: 'Yes',
+          handler: (data) => {
+            this.appData.splice(i, 1);
+            this.globalObjects.setDataLocally('appData', this.appData);
+            this.appData = this.globalObjects.getLocallData('appData')
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+
+
+  selectAppkey(app) {
+  //  console.log('app details in appcollection : ',app.resData.appcode)
+    if (app) {
+      // this.globalObjects.showLoading();
+      this.globalObjects.setDataLocally("appKey", app.appkey);
+      this.globalObjects.setDataLocally("appCode",app.resData.appcode);
+      var server_url = "http://" + app.resData.serverUrl + "/" + app.resData.war_name + "/" + app.resData.entity + "/" + app.resData.dbUrl + "/" + app.resData.portNo + "/" + app.resData.dbName + "/" + app.resData.dbPassword + "/" + app.resData.dbSid + "/";
+      var server_url2 = "http://" + app.resData.server_url2 + "/" + app.resData.war_name + "/" + app.resData.entity + "/" + app.resData.dbUrl + "/" + app.resData.portNo + "/" + app.resData.dbName + "/" + app.resData.dbPassword + "/" + app.resData.dbSid + "/";
+      var server_url3 = "http://" + app.resData.server_url3 + "/" + app.resData.war_name + "/" + app.resData.entity + "/" + app.resData.dbUrl + "/" + app.resData.portNo + "/" + app.resData.dbName + "/" + app.resData.dbPassword + "/" + app.resData.dbSid + "/";
+      var server_url4 = "http://" + app.resData.server_url4 + "/" + app.resData.war_name + "/" + app.resData.entity + "/" + app.resData.dbUrl + "/" + app.resData.portNo + "/" + app.resData.dbName + "/" + app.resData.dbPassword + "/" + app.resData.dbSid + "/";
+      this.globalObjects.setDataLocally("isAppLaunch", true);
+      this.globalObjects.setDataLocally("scopeUrl", server_url);
+      this.globalObjects.setDataLocally("server_url1", server_url);
+      this.globalObjects.setDataLocally("server_url2", server_url2);
+      this.globalObjects.setDataLocally("server_url3", server_url3);
+      this.globalObjects.setDataLocally("server_url4", server_url4);
+      this.globalObjects.setScopeUrl(server_url);
+      this.globalObjects.setDataLocally("entityCodeStr", app.resData.entity_code_str);
+
+
+      this.globalObjects.checkAndSetScopeUrl().then(data => {
+        // this.globalObjects.hideLoading();
+        let ec = app.resData.entity_code_str.split('#');
+        console.log("is it entity list...", ec)
+        this.globalObjects.setDataLocally("entityCode", ec[0]);
+
+        if (app.userDetails) {
+          this.globalObjects.setDataLocally("userDetails", app.userDetails);
+          this.globalObjects.setDataLocally("apptype", app.userDetails.module);
+          // \          this.navCtrl.setRoot('HomePage');
+          this.router.navigate(['super']);
+
+        } else {
+          this.router.navigate(['login']);
+          // this.navCtrl.setRoot('LoginPage');
+        }
+      }, err => { this.globalObjects.hideLoading(); })
+
+      this.globalObjects.setDataLocally("device_validation", app.resData.device_validation);
+    }
+  }
+
+}

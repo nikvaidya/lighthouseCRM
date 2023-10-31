@@ -1,0 +1,209 @@
+<div *ngIf="filter">
+  <app-frame-canvas-filter [frametable]="frame" (passdataToframetable)="getdataFromcanvasFilter($event)"
+    [frame]='frame'></app-frame-canvas-filter>
+</div>
+
+
+<div>
+  <div class="input-group primary-search-section" *ngIf="searchFlag  && !filter ">
+
+    <ion-input class="input-text" placeholder="Search Here..." [(ngModel)]="tablerowsfilter"></ion-input>
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small (click)="openMike()">
+        <img src="/assets/imgs/google-speaker.png">
+      </button>
+    </div>
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small>
+        <ion-icon name="qr-scanner" (click)="openbarcodescanner()"></ion-icon>
+      </button>
+    </div>
+
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small (click)="filterToggle()">
+        <ion-icon name="ios-funnel"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+<div *ngIf="show_filter=='show' ">
+  <div *ngIf="toggleFilter">
+    <app-frame-canvas-filter [frame]="frame" [frametable]='frame' (passdataToframetable)="getdataFromcanvasFilter($event)" (emitFilter)="getFilterParameter($event)"></app-frame-canvas-filter>
+  </div>
+
+
+</div>
+
+<ion-row>
+  <ion-col col-12 [hidden]="frame.cardFlag">
+    <h1 class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1>
+  </ion-col>
+</ion-row>
+<div *ngIf="!filter">
+  <div *ngFor="let rows of frame.tableRows | tableSearch :tablerowsfilter;let j=index;">
+    <div class="super-card {{rows.status}} position-relative">
+
+      <div class="sr-no position-absolute">{{j+1}}</div>
+
+      <div class="super-card-inner position-relative">
+        <!-- <div class="card-title"> {{l_card_title}} Card Title </div>  -->
+
+
+        <div class="card-title">
+          <ion-row *ngFor="let itemGroup of rows; let rowindex=index" class="p-0">
+            <ion-col class="p-0" *ngFor="let input_item of itemGroup.Level5;let i=index"
+              [hidden]="input_item.item_visible_flag!='T'">
+              <div *ngIf="input_item.item_type=='CARD_TITLE' || input_item.item_type=='BT'">
+                <app-items class="p-0 card-title" [item]="input_item" [wscp]="wscp"
+                  (emitPass)="itemClicked($event,rows,i)" (LHSOnChange)="itemValueChange($event,i)"></app-items>
+              </div>
+            </ion-col>
+          </ion-row>
+
+          <!-- <ion-fab class="card-fab-btn-container" vertical="top" horizontal="end">
+          <ion-fab-button size="small" fill="clear">Action</ion-fab-button>
+          <ion-fab-list side="bottom">
+            <ion-fab-button>
+              <ion-icon name="add" id="add" (emitPass)="itemClicked($event,j)" (click)="action('add',j)"></ion-icon>
+            </ion-fab-button>
+            <ion-fab-button>
+              <ion-icon name="create" (emitPass)="itemClicked($event,j)" (click)="action('create',j)"></ion-icon>
+            </ion-fab-button>
+            <ion-fab-button>
+              <ion-icon name="checkmark" (click)="action('checkmark',i)"></ion-icon>
+            </ion-fab-button>
+            <ion-fab-button>
+              <ion-icon name="trash" (click)="action('trash',i)"></ion-icon>
+            </ion-fab-button>
+          </ion-fab-list>
+        </ion-fab> -->
+        </div>
+
+        <ion-row *ngFor="let itemGroup of rows; let rowindex=index" class="p-0">
+          <ion-col class="p-0" *ngFor="let input_item of itemGroup.Level5;let i=index"
+            [hidden]="input_item.item_visible_flag!='T'">
+            <div *ngIf="input_item.item_type!='CARD_TITLE' && input_item.item_type!='BT'">
+              <!-- <p (input)="updateModel(model.innerText)" #model contenteditable>{{input_item.value}}</p> -->
+              <app-items class="p-0" [item]="input_item" [wscp]="wscp" (emitPass)="itemClicked($event,rows,i)"
+                (LHSOnChange)="itemValueChange($event,j)"></app-items>
+            </div>
+          </ion-col>
+        </ion-row>
+      </div>
+
+
+
+      <!-- <div class="button-sec">
+      <ion-button slot="icon-only" size="small" fill="clear">
+        <ion-icon name="add-circle"></ion-icon>
+      </ion-button>
+      <ion-button slot="icon-only" size="small" fill="clear">
+        <ion-icon name="create"></ion-icon>
+      </ion-button>
+      <ion-button slot="icon-only" size="small" fill="clear">
+        <ion-icon name="eye"></ion-icon>
+      </ion-button>
+      <ion-button slot="icon-only" size="small" fill="clear">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </ion-button>
+      <ion-button slot="icon-only" size="small" fill="clear">
+        <ion-icon name="trash"></ion-icon>
+      </ion-button>
+    </div>  -->
+      <div class="clearfix"></div>
+    </div>
+  </div>
+
+<div *ngIf="isInfinite()">
+
+  <ion-infinite-scroll class="ispinner" (ionInfinite)="doInfinite($event)">
+    <ion-infinite-scroll-content *ngIf="!loadMoreFlag" loadingSpinner="bubbles" loadingColor="red"
+      loadingText="Loading more data...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</div>
+
+
+</div>
+
+<!-- Skeleton screen -->
+<div class="center" *ngIf="listLength==0">
+  <div class="text-center" *ngIf="noRecordMessage == ''">
+    <img src="../../../../assets/dot.gif" width="20%">
+  </div>
+  <div class="text-center" *ngIf="noRecordMessage != ''">
+    <h2>{{noRecordMessage}}</h2>
+  </div>
+</div>
+
+<!-- <div *ngIf="!frame.tableRows">
+  <div class="ion-padding custom-skeleton">
+    <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+    <ion-skeleton-text animated></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 88%"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+    <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+  </div>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-skeleton-text animated style="width: 20%"></ion-skeleton-text>
+    </ion-list-header>
+    <ion-item>
+      <ion-avatar slot="start">
+        <ion-skeleton-text animated></ion-skeleton-text>
+      </ion-avatar>
+      <ion-label>
+        <h3>
+          <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+        </h3>
+        <p>
+          <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+        </p>
+        <p>
+          <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        </p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-thumbnail slot="start">
+        <ion-skeleton-text animated></ion-skeleton-text>
+      </ion-thumbnail>
+      <ion-label>
+        <h3>
+          <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+        </h3>
+        <p>
+          <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+        </p>
+        <p>
+          <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        </p>
+      </ion-label>
+    </ion-item>
+    <ion-item>
+      <ion-skeleton-text animated style="width: 27px; height: 27px" slot="start"></ion-skeleton-text>
+      <ion-label>
+        <h3>
+          <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+        </h3>
+        <p>
+          <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+        </p>
+        <p>
+          <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</div> -->
+<!-- 
+<ion-item lines="none" class="thumbnail-card">
+  <ion-thumbnail slot="start">
+    <img src="https://gravatar.com/avatar/dba6bae8c566f9d4041fb9cd9ada7741?d=identicon&f=y">
+  </ion-thumbnail>
+  <ion-label>
+    <p>Item Name</p>
+    <p>consectetur adipiscing elit. Duis ut urna neque.</p>
+  </ion-label>
+</ion-item>  -->

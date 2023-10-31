@@ -1,0 +1,193 @@
+import { Component, OnInit } from '@angular/core';
+import { ModalController, NavParams } from '@ionic/angular';
+import { DataService } from '../../services/data.service';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { PouchDBService } from 'src/app/services/pouch-db.service';
+
+@Component({
+  selector: 'app-single-select-lov',
+  templateUrl: './single-select-lov.page.html',
+  styleUrls: ['./single-select-lov.page.scss'],
+})
+export class SingleSelectLovPage implements OnInit {
+  searchText: any;
+  lovinput: any;
+  selectinput: any;
+  SelAll: boolean = false;
+  object_arr: any = [];
+  Object_code: any = [];
+  objectList : any[];
+  userDetails: any;
+  wscp: any = {};
+  wsdp: any = [];
+  type = "";
+  keyList = [];
+  itemvalue = {};
+  prompt_name;
+  prev_wscp: any = {};
+  isChecked:boolean;
+  constructor(private modalCtrl: ModalController, public navParams: NavParams, private pouchDBService: PouchDBService,
+    public dataService: DataService, private globalObjects: GlobalObjectsService ) {
+    this.lovinput = this.navParams.get('paramValue');
+    this.wscp = this.navParams.get('wscp');
+    // console.log(this.lovinput);
+  }
+  ngOnInit() {
+    this.getPageInfo();
+  }
+  setLOVValues(item) {
+    let values = ""
+    let codeOfValues = ""
+    if (values == '' || values == null) {
+      values = item[this.keyList[1]];
+      codeOfValues = item[this.keyList[0]];
+    } else {
+      values = values + "," + item[this.keyList[1]];
+      codeOfValues = codeOfValues + "," + item[this.keyList[0]];
+    }
+    let result: any = {};
+    result.value = values;
+    result.codeOfValues = codeOfValues;
+    this.modalCtrl.dismiss(result);
+    this.modalCtrl.dismiss(item);
+  }
+
+  SelectAll() {
+    if (this.SelAll == true) {
+      for (var i = 0; i < this.objectList.length; i++) {
+        this.objectList[i]['checked'] = false;
+      }
+    }
+    if (this.SelAll == false) {
+      for (var i = 0; i < this.objectList.length; i++) {
+        this.objectList[i]['checked'] = true;
+      }
+    }
+  }
+
+  setmultiLOVvalue(lov) {
+    let values = ""
+    let codeOfValues = ""
+    for (let item of lov) {
+      if (item.checked) {
+        if (values == '' || values == null) {
+          values = item[this.keyList[1]];
+          codeOfValues = item[this.keyList[0]];
+          this.isChecked=true;
+        } else {
+          values = values + "," + item[this.keyList[1]];
+          codeOfValues = codeOfValues + "," + item[this.keyList[0]];
+          this.isChecked=false;
+        }
+      }
+    }
+    let result: any = {};
+    result.value = values;
+    result.codeOfValues = codeOfValues;
+    result.isChecked=this.isChecked;
+    this.modalCtrl.dismiss(result);
+    // this.setLOVValues(values);
+  }
+
+  getPageInfo() {
+    this.globalObjects.showLoading();
+    this.wscp.service_type = "get_lov_data";
+    this.wscp.apps_page_no = this.lovinput.apps_page_no;
+    this.wscp.apps_page_frame_seqid = this.lovinput.apps_page_frame_seqid;
+    this.wscp.apps_item_seqid = this.lovinput.apps_item_seqid;
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+    this.userDetails["object_code"] = this.lovinput.object_code;
+    let reqData: any = {};
+    reqData = {
+      "wslp": this.userDetails,
+      "wscp": this.wscp,
+      "wsdp": this.wsdp
+    }
+    // reqData.wsdp = [
+    //   {
+    //     "apps_item_seqid": "1",
+    //     "itemType": "TEXT",
+    //     "itemDefaultValue": "Y~Yes#N~No"
+    //   }];
+    if (!this.globalObjects.networkStatus) {
+      let objectKey = this.userDetails.object_code + "_LOV_" + this.wscp.apps_item_seqid;
+      if (this.userDetails.object_code && this.wscp.apps_working_mode == 'I') {
+        this.pouchDBService.getObject(objectKey).then(resData => {
+          let objData: any = resData;
+          this.objectList = objData.Level1;
+          this.Object_code = objData.Level1[0];
+          delete this.Object_code['Level2'];
+          delete this.Object_code['_id'];
+          delete this.Object_code['_rev'];
+          for (let code in this.Object_code) {
+            this.keyList.push(code);
+          }
+        })
+      }
+    }
+    else {
+      this.dataService.postData("S2U", reqData).then(res => {
+        this.globalObjects.hideLoading();
+        let data: any = res;
+        console.log("data in lovpage", res);
+        if (data.responseStatus == "success") {
+          this.object_arr = data.responseData
+          let objData = this.globalObjects.setPageInfo(data.responseData);
+          this.objectList = objData.Level1;
+          this.Object_code = objData.Level1[0];
+          delete this.Object_code['Level2'];
+
+          //-------------------OFFLINE LOV SAVE ---------------------------------------------------//
+          let offlineObjectCode: any;
+          if (objData && this.wscp.apps_working_mode == 'I') {
+            if (reqData.wslp) {
+              if (reqData.wslp.object_code) {
+                offlineObjectCode = reqData.wslp.object_code + "_LOV_" + reqData.wscp.apps_item_seqid;
+              }
+            }
+            let pouchObjectKey = offlineObjectCode;
+            objData._id = pouchObjectKey;
+            objData._rev = "";
+            var temp: any = {};
+            var id = pouchObjectKey;
+            this.pouchDBService.getObject(id).then((localData: any) => {
+              temp = localData;
+              temp._id = id;
+              this.pouchDBService.updateJSON(temp);
+            }, (err) => {
+              objData._id = pouchObjectKey;
+              objData._rev = "";
+              this.pouchDBService.updateJSON(objData);
+            })
+          }
+
+          //-------------------OFFLINE LOV SAVE ---------------------------------------------------//
+          // this.objectList = this.object_arr.Level1;
+          for (let code in this.Object_code) {
+            this.keyList.push(code);
+          }
+        }
+      }).catch(err => {
+        this.globalObjects.hideLoading();
+        this.globalObjects.presentToast("4 Something went wrong please try again later!");
+      })
+    }
+  }
+
+  closeLov() {
+    this.modalCtrl.dismiss();
+  }
+
+  openMike() {
+    this.globalObjects.speechdata = '';
+    this.globalObjects.startListening().then(res => {
+      this.searchText = res;
+    });
+  }
+
+  openbarcodescanner() {
+    this.globalObjects.barcodescanner().then(res => {
+      this.searchText = res;
+    });
+  }
+}

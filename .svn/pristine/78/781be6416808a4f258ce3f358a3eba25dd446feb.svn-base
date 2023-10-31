@@ -1,0 +1,1786 @@
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { DataService } from '../../services/data.service';
+import { GlobalObjectsService } from '../../services/global-objects.service';
+import { ActivatedRoute, Router } from '@angular/router'
+import { ModalController, PopoverController, Events, MenuController, NavController } from '@ionic/angular';
+import { OverlayEventDetail } from '@ionic/core';
+import { MultiLevelTabPage } from '../multi-level-tab/multi-level-tab.page';
+import { SocialSharing } from '@ionic-native/social-sharing/ngx';
+import { HttpClient } from '@angular/common/http';
+import { EntryListPage } from '../entry-list/entry-list.page';
+import { BackgroundService } from 'src/app/services/background.service';
+import { PouchDBService } from 'src/app/services/pouch-db.service';
+import { Device } from '@ionic-native/device/ngx';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+// Add this on your Android Manifest Platforms first
+// <uses-permission android:name="android.permission.SEND_SMS"/>
+@Component({
+  selector: 'app-super',
+  templateUrl: './super.page.html',
+  styleUrls: ['./super.page.scss'],
+})
+export class SuperPage implements OnInit {
+
+  imgUrl: any[];
+  object_mast: any;
+  page_mast: any;
+
+  userDetails: any;
+  flag = true;
+  order_pageno: number;
+  tabflag: boolean;
+  tabflag2: boolean;
+
+  wscp: any = {};
+  wsdp: any = [];
+  wsdpcl: any = [];
+  // type = "";
+  page_no: number = 0;
+  isModal: any = "Menu";
+
+  currentPageInfo: any = {};
+  object_arr: any;
+
+  click_events_str: any;
+  myExtObject: any;
+  sessionObj: any;
+  pageParameter: any = {};
+  popoverdismiss: boolean = true;
+
+  operation_mode: any;
+  notificationCount: any;
+  toggleNotification: boolean;
+  toggleFab: boolean;
+  eventOfadditem:any = [];
+  id:any = 0;
+  @ViewChild('fab', { read: ElementRef }) private fabbtn: ElementRef;
+
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+
+    private dataService: DataService, private globalObjects: GlobalObjectsService,
+    public modalCtrl: ModalController, public events: Events, private router: Router,
+    public popOverCtrl: PopoverController, private background: BackgroundService,
+    private socialSharing: SocialSharing, public http: HttpClient,
+    private routeactivate: ActivatedRoute, private menuCtrl: MenuController,
+    private pouchDBService: PouchDBService, private navCtrl: NavController,
+    private device: Device, private geolocation: Geolocation
+  ) {
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+    this.background.getLocation();
+    this.events.subscribe("refresh_app", () => {
+      this.ngOnInit();
+    })
+    // this.http.get('https://firebasestorage.googleapis.com/v0/b/photo-cbbee.appspot.com/o/').subscribe((data: any) => {
+    //   this.imgUrl = data.items;
+    // })
+    // Toggle Fab & Notification
+    this.events.subscribe("toggleFab", (res) => {
+      this.toggleFab = res;
+    })
+    this.events.subscribe("toggleNotification", (res) => {
+      this.toggleNotification = res;
+    })
+
+  }
+
+  // options: InAppBrowserOptions = {
+  //   hidden: 'yes'
+  //  var url = "http://203.193.167.118:8888/DynamicAppWSV3/webService/getServerDetails?appKey=" + appkey +
+  // "&device_id=" + this.device.uuid + "&device_name=" + this.device.model;
+  // };
+
+  fromgfmglobal() {
+    this.dataService.FCMlink()
+  }
+  openwatsapp() {
+    this.socialSharing.shareViaWhatsApp("sharetext").then(() => {
+      // Success
+    }).catch(() => {
+      // Error!
+    });
+  }
+
+
+
+  // async smsApi() {
+  //   var location = 'http://sms.smsmob.in/api/mt/SendSMS?user=Lighthouse&password=lighthouse@123&senderid=LHSERP&channel=Trans&DCS=0&flashsms=0&number=8208830485&text=736717.';
+  //   const options: InAppBrowserOptions = { location: "no", zoom: 'no', toolbar: 'no', hideurlbar: "yes", hidden: "yes" }
+  //   const browser = this.theInAppBrowser.create(location, '_self', options)
+  //   browser.on('loadstop').subscribe(event => {
+  //     this.globalObjects.s2uToast("Text message sent successfully", "paymentSuccessToast");
+  //   }, (error) => {
+  //     this.globalObjects.s2uToast("Text message not sent. :(", "errorToast");
+  //   }
+  //   );
+  // }
+
+
+  // smsMobile() {
+  //   this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.SEND_SMS).then(
+  //     result => console.log('Has permission?' + result.hasPermission),
+  //     err => this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.SEND_SMS)
+  //   );
+  //   var options = {
+  //     replaceLineBreaks: false, // true to replace \n by a new line, false by default
+  //     android: {
+  //       // intent: 'INTENT'  // Opens Default sms app
+  //       intent: '' // Sends sms without opening default sms app
+  //     }}
+  //   this.sms.hasPermission().then(res => {
+  //     this.sms.send('9325543074', 'hi', options).then(result => {
+  //       alert(result);
+  //       this.globalObjects.s2uToast("Text message sent successfully! :)", "paymentSuccessToast");
+  //     }, (error) => {
+  //       alert(error);
+  //       this.globalObjects.s2uToast("Text message not sent. :(", "errorToast");
+  //     });
+  //   });
+  // }
+
+
+  // async smsfrommobile() {
+  //   // Text + Image or URL works
+  //   this.socialSharing.shareViaSMS("this hello text", "8433669706").then(() => {
+  //     // Success
+  //   }).catch((e) => {
+  //     // Error!
+  //   });
+  // }
+
+  /* ngAfterViewChecked (){
+    this.globalObjects.increFont();
+    this.cdr.detectChanges()
+  } */
+
+  ngOnInit() {
+
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+    var appkey = this.globalObjects.getLocallData("appKey");
+    var dbName = this.globalObjects.getLocallData("dbName");
+    this.globalObjects.dbName = dbName;
+    this.globalObjects.appKey = appkey;
+    // this.dbPassword = obj.resData.dbPassword;
+
+    this.toggleNotification = this.globalObjects.toggleNotification;
+    this.toggleFab = this.globalObjects.toggleFab;
+    this.events.subscribe("jumptosuper", () => {
+      this.refreshPage();
+    })
+
+    this.globalObjects.countfortextband3d = 0;
+    if (this.click_events_str && (this.click_events_str.indexOf("NEXT_PAGE") > -1 || this.click_events_str.indexOf("SAME_PAGE") > -1)) {
+    } else {
+      this.getPageInfo();
+    }
+    this.globalObjects.current_page_parameter = this.pageParameter;
+
+    if (!this.globalObjects.current_page_parameter.MODE) {
+      this.globalObjects.current_page_parameter.MODE = '';
+    }
+    // console.log(this.pageParameter);
+
+    this.events.publish("entity_name", this.userDetails.entity_name);
+    this.events.publish("entity_code_str", this.userDetails.entity_code_str);
+    this.events.subscribe("goToSuper", () => {
+      this.refreshPage();
+    })
+    this.getNotificationCount();
+  }
+
+
+
+  async getPageInfo() {
+
+    let tabdata: any;
+    if (!this.tabflag2) {
+      this.routeactivate.queryParams.subscribe(params => {
+        if (params && params.special) {
+          tabdata = params.special;
+        }
+      });
+    }
+    if (this.wscp.object_code == "SALE-CONT1..FromLocalStorageTS") {
+      // SALE-CONT1
+      // ---local storage test order page
+      let data = this.globalObjects.jsonData;
+      this.object_arr = data.responseData
+      let objData = this.globalObjects.setPageInfo(this.object_arr);
+      this.object_mast = objData.Level1[0];
+    }
+    else {
+      this.wscp.service_type = this.wscp.service_type ? this.wscp.service_type : "get_object_config";
+      if (tabdata) {
+        this.wscp = "";
+        this.wscp = JSON.parse(tabdata);
+        this.tabflag = true;
+      }
+      let reqData: any = {};
+      reqData = {
+        "wslp": this.userDetails,
+        "wscp": this.wscp,
+        "wsdp": this.wsdp,
+        "wsdpcl": this.wsdpcl
+      }
+
+
+      if (this.wsdp) { } else {
+        reqData.wsdp = [
+          {
+            "apps_item_seqid": "1",
+            "itemType": "TEXT",
+            "itemDefaultValue": "Y~Yes#N~No"
+          }];
+      }
+      if (!this.wscp.object_code || this.wscp.object_code == "") {
+        this.isModal = "Menu";
+      }
+      if (!this.globalObjects.networkStatus) {
+        if (this.wscp.object_code) { }
+        else {
+          this.wscp.object_code = this.userDetails.homeObjectCode;
+        }
+        let objectKey = this.wscp.object_code;
+        this.pouchDBService.getObject(objectKey).then(resData => {
+          this.object_mast = resData;
+          if (this.object_mast) {
+            if (this.object_mast.operation_mode_str && this.object_mast.operation_mode_str.indexOf("#") > -1) {
+              this.operation_mode = this.object_mast.operation_mode_str.split("#");
+            }
+          }
+        })
+      }
+      else {
+        //   console.log("From Requested data Page ...............",reqData);
+        this.dataService.postData("S2U", reqData).then((res: any) => {
+          let data: any = res;
+          if (data.responseStatus == "success") {
+            this.object_arr = data.responseData;
+
+            // if (this.wscp.object_code == "READ_NOTIFICATION") {
+            //   if( this.wscp.flag=="P"){   
+            //     this.isModal="P";
+            //   }else{
+            //     this.isModal = "M";
+            //   }
+            // }
+            //-------------------------------------------Pending for Session_HOLD_FLAG-----------wscp to wsdp-------------------------//
+            let objData = this.globalObjects.setPageInfo(this.object_arr);
+            this.object_mast = objData.Level1[0];
+            // this.wscp.apps_working_mode = this.object_mast.apps_working_mode;
+
+            let offlineObjectCode: any;
+            if (this.object_mast && this.object_mast.apps_working_mode === 'I') {
+              if (reqData.wscp) {
+                if (reqData.wscp.object_code) {
+                  offlineObjectCode = reqData.wscp.object_code;
+                }
+                else {
+                  offlineObjectCode = this.userDetails.homeObjectCode;
+                }
+              }
+              let pouchObjectKey = offlineObjectCode;
+              this.object_mast._id = pouchObjectKey;
+              this.object_mast._rev = "";
+              var temp: any = {};
+              var id = pouchObjectKey;
+              this.pouchDBService.getObject(id).then((localData: any) => {
+                temp = localData;
+                temp._id = id;
+                this.pouchDBService.updateJSON(temp);
+              }, (err) => {
+                this.object_mast._id = pouchObjectKey;
+                this.object_mast._rev = "";
+                this.pouchDBService.updateJSON(this.object_mast);
+              })
+            }
+            if (this.object_mast) {
+              if (this.object_mast.operation_mode_str && this.object_mast.operation_mode_str.indexOf("#") > -1) {
+                this.operation_mode = this.object_mast.operation_mode_str.split("#");
+              }
+              //------------------------ Offline Entry Records for Each Object------------------------------------//
+              // for (let l_obj_1 of this.object_mast.Level2) {
+              //   if (l_obj_1.Level3.length > 0) {
+              //     for (let l_obj_2 of l_obj_1.Level3) {
+              //       if (l_obj_2.Level4.length > 0) {
+              //         for (let l_obj_3 of l_obj_2.Level4) {
+              //           if (l_obj_3.Level5.length > 0) {
+              //             for (let l_obj_4 of l_obj_3.Level5) {
+              //               if (l_obj_4) {
+              //                 let l_object_code = l_obj_4.calling_object_code + "_localEntryList";
+              //                 this.pouchDBService.getObject(l_object_code).then(res => {
+              //                   let l_data: any = res;
+              //                   l_obj_4.noOfEntry = l_data.count;
+              //                 }, err => {
+              //                   console.log(err);
+              //                   l_obj_4.noOfEntry = 0;
+              //                 })
+              //               }
+              //             }
+              //           }
+              //         }
+              //       }
+              //     }
+              //   }
+              // }
+              //------------------------ Offline Entry Records for Each Object------------------------------------//
+            }
+          }
+          else {
+            if (this.wscp.service_type == "get_object_config") {
+              alert(res.responseMsg);
+              // this.globalObjects.destroyLocalData("userDetails");
+              // this.router.navigate(["/login"]);
+
+            }
+          }
+        }).catch(err => {
+          this.globalObjects.presentToast("5 Something went wrong please try again later!");
+          console.log(err);
+
+        })
+      }
+    }
+
+  }
+
+  setPageInfo() {
+    for (let frame of this.object_mast.Level2[this.page_no].Level3) {
+      for (let itemGroup of frame.Level4) {
+        let itemMast: any = [];
+        for (let item of itemGroup.Level5Values) {
+          let item1 = {};
+          let count = 0;
+          for (let key of itemGroup.Level5Keys) {
+            item1[key] = item[count];
+            count++;
+          }
+          itemMast.push(item1);
+        }
+        itemGroup.Level5 = itemMast;
+        delete itemGroup['Level5Keys'];
+        delete itemGroup['Level5Values'];
+      }
+    }
+  }
+
+  itemClicked(event) {
+    if (event.click_events_str) {
+      let click_events_str_arr = [];
+      if (event['click_events_str'].indexOf('~~') > -1) {
+        click_events_str_arr = event['click_events_str'].split('~~');
+        var newstr = click_events_str_arr[1].replace("strLoginID", this.userDetails.user_code);
+        let secondstring = newstr.replace("strPassword", this.userDetails.password)
+        if (click_events_str_arr[0] == "OPEN_URL") {
+          this.globalObjects.inappBrowser(secondstring);
+        }
+      } if (event.click_events_str.indexOf("checkValidFrame") > -1) {
+        let isValid = this.checkValidFrame(event);
+        if (!isValid) {
+          this.globalObjects.clickedbutton = false;
+          alert("Please correct all the errors and enter valid input")
+        } else {
+          event.click_events_arr = event.click_events_str.split("#");
+          event.click_events_count = 1;
+          this.itemClicked1(event);
+        }
+      } else {
+        event.click_events_arr = event.click_events_str.split("#");
+        event.click_events_count = 0;
+        this.itemClicked1(event);
+      }
+    }
+  }
+
+  itemClicked1(event) {
+    this.sessionObj = event.sessionObj;
+    let nextPageInfo: any = {};
+    nextPageInfo.click_events_str = event.click_events_str;
+    
+
+    if (event.wsdp) {
+      nextPageInfo.wsdp = event.wsdp;
+    }
+    nextPageInfo.wscp = {};
+    nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+    nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+    if (event.wscp) {
+      if (event.wscp.apps_item_seqid) {
+        nextPageInfo.wscp.apps_item_seqid = event.wscp.apps_item_seqid;
+      }
+    }
+    if (event.prev_ws_seqid) {
+      nextPageInfo.wscp.prev_ws_seqid = event.prev_ws_seqid;
+    }
+    if (event.callingObjectArr) {
+      if (event.callingObjectArr.length > 0) {
+        let clickIndex = event.itemIndex;
+        let callingObjectCodeStr = event.callingObjectArr[clickIndex].value;
+        // console.log(callingObjectCodeStr);
+        let codeValueJsonArr = this.globalObjects.getCodeValueJsonArr(callingObjectCodeStr);
+        // console.log(codeValueJsonArr);
+        for (let codeValue of codeValueJsonArr) {
+          if (codeValue.head == event.item_name) {
+            nextPageInfo.wscp.object_code = codeValue.objectCode;
+          }
+        }
+      } else {
+        nextPageInfo.wscp.object_code = event.calling_object_code;
+      }
+    } else {
+      nextPageInfo.wscp.object_code = event.calling_object_code;
+    }
+    nextPageInfo.wscp.apps_working_mode = this.object_mast.apps_working_mode;
+    nextPageInfo.wscp.item_sub_type = event.item_sub_type;
+    nextPageInfo.wscp.pageno = event.calling_pageno;
+    // nextPageInfo.wscp.calling_parameter_str = event.calling_parameter_str;
+    nextPageInfo.wscp.click_events_str = event.click_events_arr[event.click_events_count];
+    if (event.calling_parameter_str) {
+      nextPageInfo.pageParameter = {};
+      let temp = event.calling_parameter_str.split("~~");
+      for (let t of temp) {
+        nextPageInfo.pageParameter[(t.split("=")[0])] = t.split("=")[1]
+      }
+    }
+
+    if (this.sessionObj) {
+      for (var key in this.sessionObj) {
+        nextPageInfo.wscp[key] = this.sessionObj[key];
+      }
+    }
+    nextPageInfo.object_mast = this.object_mast;
+    nextPageInfo.wsdpcl = event.wsdpcl;
+    nextPageInfo.sessionObj = event.sessionObj;
+    nextPageInfo.wscp.flag = event.flag;
+
+    if (event.click_events_arr[event.click_events_count] == "NEXT_PAGE") {
+      if (event.page_no) {
+        nextPageInfo.page_no = event.page_no;
+        this.order_pageno = nextPageInfo.page_no;
+      } else {
+        nextPageInfo.page_no = this.page_no + 1;
+      }
+
+      this.openPage(nextPageInfo);
+    } else if (event.click_events_arr[event.click_events_count] == "SAME_PAGE") {
+
+      nextPageInfo.page_no = this.page_no + 1;
+      nextPageInfo.wscp.item_sub_type = event.item_sub_type;
+
+      this.samePageForm(nextPageInfo)
+    }
+    else if (event.click_events_arr[event.click_events_count] == "BACK_PAGE") {
+      this.closePage();
+    } else if (event.click_events_arr[event.click_events_count] == "go_home_page") {
+      location.reload();
+    } else if (event.click_events_arr[event.click_events_count] == "SAVE_FRAME_PKEY" ||
+      event.click_events_arr[event.click_events_count] == "UPDATE_FRAME_PKEY" ||
+      event.click_events_arr[event.click_events_count] == "DELETE_FRAME_PKEY") {
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.object_code = event.object_code;
+      nextPageInfo.wscp.service_type = event.click_events_arr[event.click_events_count];
+      this.saveData(nextPageInfo, event, event.click_events_arr[event.click_events_count]);
+    } else if (event.click_events_arr[event.click_events_count] == "READ_NOTIFICATION") {
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.object_code = event.object_code;
+      nextPageInfo.wscp.service_type = event.click_events_arr[event.click_events_count];
+      this.execute_plsql(nextPageInfo, event);
+    } else if (event.click_events_arr[event.click_events_count] == "UPDATE_IRFEILDS") {
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.object_code = event.object_code;
+      nextPageInfo.wscp.service_type = "UPDATE_IRFEILDS";
+      this.saveData(nextPageInfo, event, event.click_events_arr[event.click_events_count]);
+    } else if (event.click_events_arr[event.click_events_count] == "execute_item_plsql") {
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.object_code = event.object_code;
+      nextPageInfo.wscp.service_type = "execute_item_plsql";
+
+     /*  uncomment when calling_frame_seqid_str using . now this is done by plsql*/
+
+       if(event.calling_frame_seqid_str && event.calling_frame_seqid_str.indexOf("#") > -1){
+      let seqid_arr = event.calling_frame_seqid_str.split("#");
+      let calling_frame_seqid_arr = [];
+        for(let x of seqid_arr){
+          if(x){
+            calling_frame_seqid_arr.push(x);
+          }
+        }
+        event.calling_frame_seqid_arr = calling_frame_seqid_arr;
+      } 
+     
+    //  calling_frame_seqid_arr.indexOf('#')
+      this.execute_plsql(nextPageInfo, event);
+    } else if (event.click_events_arr[event.click_events_count].indexOf('go_approval_tab') > -1) {
+      nextPageInfo.wscp.object_code = event.calling_object_code;
+      nextPageInfo.wscp.item_sub_type = event.item_sub_type;
+      nextPageInfo.wscp.pageno = event.calling_pageno;
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.service_type = "APPROVAL_DETAIL";
+      nextPageInfo.frame = this.object_mast.Level2[this.page_no].Level3;
+      nextPageInfo.wslp = this.userDetails;
+      this.open_model_page(nextPageInfo);
+    } else if (event.click_events_arr[event.click_events_count].indexOf('super_approval_tab') > -1) {
+      nextPageInfo.wscp.object_code = event.calling_object_code;
+      nextPageInfo.wscp.item_sub_type = event.item_sub_type;
+      nextPageInfo.wscp.pageno = event.calling_pageno;
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      // nextPageInfo.wscp.service_type = "APPROVAL_DETAIL";
+      nextPageInfo.frame = this.object_mast.Level2[this.page_no].Level3;
+      nextPageInfo.wslp = this.userDetails;
+      nextPageInfo.wscp.apps_page_frame_seqid = event.apps_page_frame_seqid;
+      nextPageInfo.wscp.get_tab_count_pages = 'get_tab_count_pages';
+      this.open_approval_page(nextPageInfo);
+    } else if (event.click_events_arr[event.click_events_count] == 'go-multi-level-tab') {
+      nextPageInfo.wscp.object_code = event.calling_object_code;
+      nextPageInfo.wscp.item_sub_type = event.item_sub_type;
+      nextPageInfo.wscp.pageno = event.calling_pageno;
+      nextPageInfo.wscp.apps_page_frame_seqid = event.calling_frame_seqid_str;
+      nextPageInfo.wscp.apps_item_seqid = event.apps_item_seqid;
+      nextPageInfo.wscp.apps_page_no = event.apps_page_no;
+      nextPageInfo.wscp.service_type = event.calling_object_code;
+      nextPageInfo.frame = this.object_mast.Level2[this.page_no].Level3;
+      nextPageInfo.wslp = this.userDetails;
+      this.open_model_multilevel_page(nextPageInfo);
+    }
+
+    else if (event.click_events_arr[event.click_events_count] == "refresh_app") {
+      console.log(event)
+    }
+    else if (event.click_events_arr[event.click_events_count] == "calender") {
+      this.addCalender(event);
+    } else if (event.click_events_arr[event.click_events_count] == "addItem") {
+      this.additem(event);
+    } else if (event.click_events_arr[event.click_events_count] == "editItem") {
+      this.editItem(event);
+    } else if (event.click_events_arr[event.click_events_count] == "deleteItem") {
+    } else if (event.click_events_arr[event.click_events_count] == "CHECK_GEOFENCE") {
+      this.checkGeofence(event);
+    } else if (event.click_events_arr[event.click_events_count] == "SEND_SMS") {
+      this.sendSms();
+    } else if (event.click_events_arr[event.click_events_count] == "smsMobile") {
+      this.sendSmsThrought('smsMobile', event);
+    } else if (event.click_events_arr[event.click_events_count] == "smsApi") {
+      this.sendSmsThrought('smsApi', event);
+    } else if (event.click_events_arr[event.click_events_count] == "SEND_EMAIL") {
+      this.sendEmail(event);
+    } else if (event.click_events_arr[event.click_events_count] == "SEND_WHATSAPP") {
+      this.shareViaWhatsApp(event);
+    } else if (event.click_events_arr[event.click_events_count].indexOf("START_TRACKING") > -1) {
+      let event_str = event.click_events_arr[event.click_events_count];
+      let interval_time: any = 5;
+      if (event_str.indexOf("~")) {
+        interval_time = event_str.split("~")[1];
+      }
+      event.interval_time = interval_time;
+      this.trackingEvent("START", event);
+    }
+    // else if (event.click_events_arr[event.click_events_count].indexOf("APPROVE_REJECT") > -1){
+    //   nextPageInfo.click_events_arr = event.click_events_arr;
+    //   nextPageInfo.click_events_count = event.click_events_count;
+    //   nextPageInfo.wscp.service_type = event.wscp.service_type;
+    //   this.approveReject(nextPageInfo);
+    // }
+    else if (event.click_events_arr[event.click_events_count] == "END_TRACKING") {
+      this.trackingEvent("END", event);
+    }
+    else if (event.click_events_arr[event.click_events_count].indexOf("exit_pages_refresh") > -1) {
+      let event_str = event.click_events_arr[event.click_events_count];
+      if(event_str.indexOf("~")){
+        this.globalObjects.frameSeqId = event_str.split("~")[1];
+      } 
+      this.modalCtrl.dismiss();
+     
+    }
+    else if (event.click_events_arr[event.click_events_count] == "get_object_config_exit"){
+      this.modalCtrl.dismiss();
+      nextPageInfo.object_mast = [];
+      this.openPage(nextPageInfo);
+    }
+
+    else if (event.click_events_arr[event.click_events_count] == "get_object_config_all_exit") {
+      location.reload();
+    
+    }
+    else {
+      nextPageInfo.object_mast = [];
+      // if(nextPageInfo.wscp.object_code=="READ_NOTIFICATION" && nextPageInfo.wscp.flag=="null" ){
+      //   this.popOverCtrl.dismiss();
+      //   nextPageInfo.wscp.flag="M";
+      // }
+      this.openPage(nextPageInfo);
+    }
+    console.log("it loads")
+  }
+
+  closeAllModal(nextPageInfo){
+    if(this.globalObjects.frameSeqId){
+      if(nextPageInfo.wscp.apps_page_frame_seqid == this.globalObjects.frameSeqId){
+      //  nextPageInfo.object_mast = [];
+        this.globalObjects.frameSeqId = "";
+        this.ngOnInit();
+      //  this.openPage(nextPageInfo);
+      }else{
+        this.modalCtrl.dismiss();
+      }
+    }
+  }
+
+
+  checkGeofence(event: any) {
+    var object_mast = this.object_mast.Level2
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        let latitude;
+        let longitude;
+        if (frame.tableRows) {
+          for (let framedata of frame.tableRows) {
+            for (let itemGroup of framedata) {
+              if (itemGroup.Level5) {
+                for (let item of itemGroup.Level5) {
+                  if (item.item_default_value == "LATITUDE") {
+                    latitude = item.value
+                  } else if (item.item_default_value == "LONGITUDE") {
+                    longitude = item.value
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if (latitude && longitude) {
+          // this.globalObjects.checkLocation(21.1191385, 79.0473204).then(res => {
+          this.globalObjects.checkLocation(latitude, longitude).then(res => {
+            let result = res;
+            if (result) {
+              if (event.click_events_arr.length > (event.click_events_count + 1)) {
+                event.click_events_count = event.click_events_count + 1;
+                this.itemClicked1(event);
+              }
+            } else {
+              alert("You are out of Geolocation , You Can not complete this process");
+            }
+          })
+        }
+      }
+    }
+  }
+
+
+  // smsApi(l_mobile_number: any, l_sms_text: any) {
+  //   this.globalObjects.smsApi(l_mobile_number, l_sms_text);
+  // }
+  // smsMobile(l_mobile_number: any, l_sms_text: any) {
+  //   this.globalObjects.smsMobile(l_mobile_number, l_sms_text);
+  // }
+
+  sendSmsThrought(l_sendby, event) {
+    var object_mast = this.object_mast.Level2
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        let mobileNo;
+        let message = "Please Input Proper Message..!";
+        if (frame.tableRows) {
+          for (let framedata of frame.tableRows) {
+            for (let itemGroup of framedata) {
+              if (itemGroup.Level5) {
+                for (let item of itemGroup.Level5) {
+                  if (item.item_name == "MOBILE_NUMBER" || item.item_name == "MOBILENO" || item.item_name == "mobileno") {
+                    mobileNo = item.value
+                  } else if (item.item_name == "SMS_TEXT") {
+                    message = item.value
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (mobileNo && message && l_sendby == 'smsMobile') {
+          try {
+            this.globalObjects.smsMobile(mobileNo, message);
+            if (event.click_events_arr.length > (event.click_events_count + 1)) {
+              event.click_events_count = event.click_events_count + 1;
+              this.itemClicked1(event);
+            }
+          } catch (error) {
+          }
+        }
+        else if (mobileNo && message && l_sendby == 'smsApi') {
+          this.globalObjects.smsApi(mobileNo, message);
+          if (event.click_events_arr.length > (event.click_events_count + 1)) {
+            event.click_events_count = event.click_events_count + 1;
+            this.itemClicked1(event);
+          }
+        }
+        else if (mobileNo && message && l_sendby == 'shareViaWhatsApp') {
+          this.globalObjects.shareViaWhatsApp(mobileNo, message);
+          if (event.click_events_arr.length > (event.click_events_count + 1)) {
+            event.click_events_count = event.click_events_count + 1;
+            this.itemClicked1(event);
+          }
+        }
+      }
+    }
+  }
+
+  sendSms() {
+    var object_mast = this.object_mast.Level2
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        let mobileNo;
+        let message;
+        if (frame.tableRows) {
+          for (let framedata of frame.tableRows) {
+            for (let itemGroup of framedata) {
+              if (itemGroup.Level5) {
+                for (let item of itemGroup.Level5) {
+                  if (item.item_name == "MOBILE_NUMBER") {
+                    mobileNo = item.value
+                  } else if (item.item_name == "SMS") {
+                    message = item.value
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if (mobileNo && message) {
+          this.wscp.service_type = "send_sms";
+          let smsData: any = {};
+          smsData.mobileNo = mobileNo;
+          smsData.smsText = message;
+          let wsdp: any = [];
+          wsdp.push(smsData);
+          let reqData: any = {};
+          reqData = {
+            "wslp": this.userDetails,
+            "wscp": this.wscp,
+            "wsdp": wsdp,
+            "wsdpcl": this.wsdpcl
+          }
+
+          this.dataService.postData("SEND_SMS", reqData).then(res => {
+            let data: any = res;
+            if (data.responseStatus == "success") {
+              this.object_arr = data.responseData;
+              let objData = this.globalObjects.setPageInfo(this.object_arr);
+              this.object_mast = objData.Level1[0];
+            }
+          }).catch(err => {
+            console.log('super.page.ts Something went wrong :', err);
+            this.globalObjects.presentToast("785 Something went wrong please try again later!");
+            console.log(err);
+          })
+        }
+      }
+    }
+  }
+
+  sendEmail(event: any) {
+    alert('Email sent !!');
+  }
+
+  editItem(event: any) {
+    for (let frame of this.object_mast.Level2[this.page_no].Level3) {
+      if (frame.apps_frame_type == 'CANVAS' && frame.apps_page_frame_seqid == event.apps_page_frame_seqid) {
+        frame.tableRows[0] = event.EDIT_ITEM
+      }
+    }
+  }
+
+  additem(event) {
+   
+      
+    for (let frame of this.object_mast.Level2[this.page_no].Level3) {
+
+      if (frame.apps_frame_type == 'CARD') {
+      //  this.eventOfadditem.push(event.ADD_ITEM);
+      
+        /* for(let data of event.ADD_ITEM){
+          data.apps_item_seqid = frame.apps_page_frame_seqid;
+          data.apps_page_frame_seqid = frame.apps_page_frame_seqid;
+          for(let item of data.Level5){
+            item.apps_page_frame_seqid = frame.apps_page_frame_seqid;
+          }
+        } */
+
+        if (frame.tableRows) {
+          frame.tableRows.push(event.ADD_ITEM);
+          frame.tableRows.stopLoader = true;
+          this.eventOfadditem = frame.tableRows;
+
+        } else {
+          frame.tableRows = [];
+          frame.tableRows.push(event.ADD_ITEM);
+          this.eventOfadditem = frame.tableRows;
+        }
+      }
+      else if (frame.apps_frame_type == 'CALENDER') {
+        if (frame.tableRows) {
+          frame.tableRows.push(event.ADD_ITEM);
+        } else {
+          frame.tableRows = [];
+          frame.tableRows.push(event.ADD_ITEM);
+
+        }
+        this.events.publish("runcalender", "Calenderrun");
+      }
+    }
+  }
+  addCalender(event) {
+    for (let frame of this.object_mast.Level2[this.page_no].Level3) {
+      if (frame.apps_frame_type == 'CALENDER') {
+        if (frame.tableRows) {
+          frame.tableRows.push(event.ADD_ITEM);
+        } else {
+          frame.tableRows = [];
+          frame.tableRows.push(event.ADD_ITEM);
+        }
+      }
+    }
+  }
+
+  saveData(nextPageInfo, event, str) {
+    let wsdp = [];
+    if (str == "DELETE_FRAME_PKEY") { } else {
+      var object_mast = this.object_mast.Level2
+      for (let object of object_mast) {
+        for (let frame of object.Level3) {
+          if (frame.flag != "F") {
+            if (frame.tableRows) {
+              for (let framedata of frame.tableRows) {
+                let col = {};
+                for (let itemGroup of framedata) {
+                  if (itemGroup.Level5) {
+                    for (let item of itemGroup.Level5) {
+                      if (item.codeOfValues) {
+                        col[item.apps_item_seqid] = item.codeOfValues;
+                      } else if (item.value) {
+                        col[item.apps_item_seqid] = item.value;
+                      } else {
+                        col[item.apps_item_seqid] = "";
+                      }
+                    }
+                  } else if (itemGroup) {
+                    for (let item of itemGroup) {
+                      if (item.codeOfValues) {
+                        col[item.apps_item_seqid] = item.codeOfValues;
+                      } else if (item.value) {
+                        col[item.apps_item_seqid] = item.value;
+                      } else {
+                        col[item.apps_item_seqid] = "";
+                      }
+                    }
+                  }
+                }
+                wsdp.push(col)
+              }
+            } else {
+              let col = {};
+              for (let itemGroup of frame.Level4) {
+                if (itemGroup.Level5) {
+                  for (let item of itemGroup.Level5) {
+                    // col[item.apps_item_seqid] = item.value
+                    if (item.codeOfValues) {
+                      col[item.apps_item_seqid] = item.codeOfValues;
+                    } else if (item.value) {
+                      col[item.apps_item_seqid] = item.value;
+                    } else {
+                      col[item.apps_item_seqid] = "";
+                    }
+                  }
+                }
+              }
+              wsdp.push(col)
+            }
+          }
+        }
+      }
+    }
+    // console.log(wsdp);
+    //---------------------------------
+    let reqData: any = {};
+    reqData = {
+      "wslp": this.userDetails,
+      "wscp": nextPageInfo.wscp,
+      "wsdp": wsdp,
+      "wsdpcl": nextPageInfo.wsdpcl
+    }
+    // console.log(reqData);
+    // this.globalObjects.showLoading();
+
+
+    if (!this.globalObjects.networkStatus) {
+      this.dataService.saveEntryToLocalDB(reqData).then(res => {
+        console.log(reqData);
+        if (res == "success") {
+          this.globalObjects.displayCordovaToast("Entry Saved in Local Storage..!");
+          this.closePage();
+        } else {
+          this.globalObjects.displayCordovaToast("Error in Save Offline.. !");
+        }
+      })
+    } else {
+      this.dataService.postData("S2U", reqData).then(res => {
+        // this.globalObjects.hideLoading();
+        let data: any = res;
+        // console.log(data);
+        if (data.responseStatus == "success") {
+          alert("Data Saved Successfully");
+          // this.globalObjects.s2uToast("Data Saved Successfully", "paymentSuccessToast");
+          let object_arr = data.responseData
+          // let objData = this.globalObjects.setPageInfo(object_arr);
+          let keycount = 0;
+          for (let obj of object_arr.Level1_Keys) {
+            if (event.sessionObj) {
+              event.sessionObj[obj] = object_arr.Values[0][keycount]
+            } else {
+              event.sessionObj = {};
+              event.sessionObj[obj] = object_arr.Values[0][keycount]
+            }
+            keycount = keycount + 1;
+          }
+          if (event.click_events_arr.length > (event.click_events_count + 1)) {
+            event.click_events_count = event.click_events_count + 1;
+            this.itemClicked1(event);
+          } else if (str == "DELETE_FRAME_PKEY") {
+            this.deleteRow(event);
+          }
+        } else {
+          this.globalObjects.presentToastWithOptions(data.responseMsg, "errorclass")
+        }
+      }).catch(err => {
+        this.globalObjects.presentToast("6 Something went wrong please try again later!");
+        console.log(err);
+      })
+    }
+
+
+    //---------------------------------
+  }
+
+
+  deleteRow(event) {
+    // var object_mast = this.object_mast.Level2
+    for (let object of this.object_mast.Level2) {
+      for (let frame of object.Level3) {
+        frame.tableRows.splice(event.itemIndex, 1)
+      }
+    }
+  }
+
+
+  execute_plsql(nextPageInfo, event) {
+    event.item_enable_flag = 'F';
+    let wsdp = [];
+    var object_mast = this.object_mast.Level2;
+    if(event.calling_frame_seqid_arr){
+      for(let call_frame of event.calling_frame_seqid_arr){ 
+      for (let object of object_mast) {
+       
+        for (let frame of object.Level3) {
+          if (frame.flag != "F") {
+            if(frame.apps_page_frame_seqid == call_frame){
+              let tableRows = [];
+              tableRows = frame.tableRows
+              if(this.eventOfadditem.length > 0){
+                if(this.eventOfadditem[0][0].apps_page_frame_seqid == frame.apps_page_frame_seqid){
+                  tableRows = this.eventOfadditem;
+                }
+              }
+
+            if (tableRows.length > 0) {
+              for (let framedata of tableRows) {
+                let col = {};
+                for (let itemGroup of framedata) {
+                  if (itemGroup.Level5) {
+                    for (let item of itemGroup.Level5) {
+                      if (item.codeOfValues) {
+                        col[item.apps_item_seqid] = item.codeOfValues;
+                      } else if (item.value) {
+                        col[item.apps_item_seqid] = item.value;
+                      } else {
+                        col[item.apps_item_seqid] = "";
+                      }
+                    }
+                  }
+                }
+                wsdp.push(col)
+              }
+            } else {
+              let col = {};
+              for (let itemGroup of frame.Level4) {
+                if (itemGroup.Level5) {
+                  for (let item of itemGroup.Level5) {
+                    if (item.codeOfValues) {
+                      col[item.apps_item_seqid] = item.codeOfValues;
+                    } else if (item.value) {
+                      col[item.apps_item_seqid] = item.value;
+                    } else {
+                      col[item.apps_item_seqid] = "";
+                    }
+  
+                  }
+                }
+              }
+              wsdp.push(col)
+            }
+          }
+        }
+        }
+      }
+    }
+    }else{
+
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        if (frame.flag != "F") {
+          if (frame.tableRows) {
+            for (let framedata of frame.tableRows) {
+              let col = {};
+              for (let itemGroup of framedata) {
+                if (itemGroup.Level5) {
+                  for (let item of itemGroup.Level5) {
+                    if (item.codeOfValues) {
+                      col[item.apps_item_seqid] = item.codeOfValues;
+                    } else if (item.value) {
+                      col[item.apps_item_seqid] = item.value;
+                    } else {
+                      col[item.apps_item_seqid] = "";
+                    }
+                  }
+                }
+              }
+              wsdp.push(col)
+            }
+          } else {
+            let col = {};
+            for (let itemGroup of frame.Level4) {
+              if (itemGroup.Level5) {
+                for (let item of itemGroup.Level5) {
+                  if (item.codeOfValues) {
+                    col[item.apps_item_seqid] = item.codeOfValues;
+                  } else if (item.value) {
+                    col[item.apps_item_seqid] = item.value;
+                  } else {
+                    col[item.apps_item_seqid] = "";
+                  }
+
+                }
+              }
+            }
+            wsdp.push(col)
+          }
+        }
+      }
+    }
+  }
+    if (this.globalObjects.summaryCartdeatail.length > 0) {
+      let glob = this.globalObjects.summaryCartdeatail;
+      wsdp = [];
+      let col = {};
+      for (let globArr of glob) {
+        for (let globObj of globArr.items) {
+          for (let itemGroup of globObj) {
+            if (itemGroup.Level5) {
+              for (let item of itemGroup.Level5) {
+                if (item.codeOfValues) {
+                  col[item.apps_item_seqid] = item.codeOfValues;
+                } else if (item.value) {
+                  col[item.apps_item_seqid] = item.value;
+                } else {
+                  col[item.apps_item_seqid] = "";
+                }
+
+              }
+            }
+          }
+        }
+      }
+      wsdp.push(col)
+
+    }
+
+    if (this.globalObjects.cartSummaryPlain.length > 0) {
+      wsdp = [];
+      let tableRows = [];
+      
+              for (let framedata of object_mast[0].Level3[0].tableRows) {
+                let col = {};
+                for (let itemGroup of framedata) {
+                  if (itemGroup.Level5) {
+                    for (let item of itemGroup.Level5) {
+                      if (item.codeOfValues) {
+                        col[item.apps_item_seqid] = item.codeOfValues;
+                      } else if (item.value) {
+                        col[item.apps_item_seqid] = item.value;
+                      } else {
+                        col[item.apps_item_seqid] = "";
+                      }
+                    }
+                  }
+                }
+                wsdp.push(col)
+          }
+
+      for (let row of this.globalObjects.cartSummaryPlain) {
+        tableRows.push(row.cartRows)
+      }
+      
+      for (let tabledata of tableRows) {
+        let col = {};
+        for(let itemGroup of tabledata) {
+        if (itemGroup.Level5) {
+          for (let item of itemGroup.Level5) {
+            if (item.codeOfValues) {
+              col[item.apps_item_seqid] = item.codeOfValues;
+            } else if (item.value) {
+              col[item.apps_item_seqid] = item.value;
+            } else {
+              col[item.apps_item_seqid] = "";
+            }
+
+          }
+        }
+        }
+        wsdp.push(col)
+      }
+     
+    }
+
+    //---------------------------------
+    let reqData: any = {};
+    // alert(JSON.stringify(this.globalObjects.getDeviceInfo()));
+    reqData = {
+      "wslp": this.userDetails,
+      "wscp": nextPageInfo.wscp,
+      "wsdp": wsdp,
+      "wsdpcl": nextPageInfo.wsdpcl,
+      "wslogs": this.globalObjects.getDeviceInfo()
+    }
+    // console.log(reqData);
+
+    // this.globalObjects.showLoading();
+
+    // if (this.wscp.object_code == "READ_NOTIFICATION") {
+    //   this.modalCtrl.dismiss();
+    //   this.isModal = "Menu"
+    // }
+    // alert(JSON.stringify(th is.wscp))
+
+
+    if (!this.globalObjects.networkStatus) {
+      this.dataService.saveEntryToLocalDB(reqData).then(res => {
+        console.log(reqData);
+        if (res == "success") {
+          this.globalObjects.displayCordovaToast("Entry Saved in Local Storage..!");
+          this.closePage();
+        } else {
+          this.globalObjects.displayCordovaToast("Error in Save Offline.. !");
+        }
+      })
+    } else {
+      this.dataService.postData("S2U", reqData).then(res => {
+
+        // this.globalObjects.hideLoading();
+        let data: any = res;
+        // console.log(data);
+        if (data.responseStatus == "success") {
+          // alert("Data Saved Successfully");
+          let object_arr = data.responseData
+          let keycount = 0;
+          for (let obj of object_arr.Level1_Keys) {
+            if (event.sessionObj) {
+              event.sessionObj[obj] = object_arr.Values[0][keycount]
+            } else {
+              event.sessionObj = {};
+              event.sessionObj[obj] = object_arr.Values[0][keycount]
+            }
+            keycount = keycount + 1;
+          }
+          let objData = this.globalObjects.setPageInfo(object_arr);
+
+          console.log('objData', objData);
+          if (objData.Level1[0].prev_ws_seqid) {
+            event.prev_ws_seqid = objData.Level1[0].prev_ws_seqid;
+          }
+          if (objData.Level1[0].status == "F") {
+            this.globalObjects.clickedbutton = false;
+            alert(objData.Level1[0].message);
+
+            // let count = 1;
+            // for(let x in reqData.wsdpcl[0]){
+            //   if(count == 2){
+            //     let massege = reqData.wsdpcl[0][x].split('~')
+            //       this.globalObjects.presentToastWithOptions(massege[2]+" Successfully Marked as read.", "errorClass");
+            //   }
+            // count++;
+            // }
+
+            // console.log("My Response Data2: "+JSON.stringify(objData));
+          }
+          else if (objData.Level1[0].status == "L") {
+            sessionStorage.setItem("PLSQL_L", objData.Level1[0].message);
+          }
+
+          else if (objData.Level1[0].status == "Q") {
+            event.item_enable_flag = 'T';
+            alert(objData.Level1[0].message);
+            this.globalObjects.clickedbutton = false;
+
+            for (let frame of this.object_mast.Level2[this.page_no].Level3) {
+              if (frame.apps_frame_type === "CALENDER") {
+                this.events.publish('reloadCal');
+              }
+            }
+
+
+          }
+          else if (objData.Level1[0].status == "T") {
+          }
+          else {
+            objData.Level1[0].status = "Q";
+            event.item_enable_flag = 'T';
+            alert(objData.Level1[0].message);
+            this.globalObjects.clickedbutton = false;
+          }
+          //let keycount = 0;
+          // if (wscp.object_code == "READ_NOTIFICATION")
+
+          // if (object_arr.Level1_Keys) {
+          //   for (let obj of object_arr.Level1_Keys) {
+          //     if (event.sessionObj) {
+          //       event.sessionObj[obj] = object_arr.Values[0][keycount]
+          //     } else {
+          //       event.sessionObj = {};
+          //       event.sessionObj[obj] = object_arr.Values[0][keycount]
+          //     }
+          //     keycount = keycount + 1;
+          //   }
+          // }
+          // console.log(event.sessionObj);
+          if (event.click_events_arr.length > (event.click_events_count + 1) && (objData.Level1[0].status != "Q")) {
+            event.click_events_count = event.click_events_count + 1;
+            this.itemClicked1(event);
+          }
+        } else {
+          // this.globalObjects.presentToast(data.responseMsg)
+          // this.globalObjects.presentToastWithOptions(data.responseMsg,"errorclass")
+          this.globalObjects.presentToastWithOptions(data.responseStatus + ' responseMsg : ' + data.responseMsg, "errorclass");
+        }
+
+      }).catch(err => {
+
+        this.globalObjects.presentToast("6 Something went wrong please try again later!");
+        console.log(err);
+      })
+    }
+    //---------------------------------
+  }
+
+  checkValidFrame(event) {
+
+    let isValid = true;
+    // -----------------------------------
+    let arr = event.click_events_str.split("#");
+    let frmseq = arr[event.click_events_str.indexOf("checkValidFrame")].split("~")[1];
+    var object_mast = this.object_mast.Level2
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        if (frame.flag != "F") {
+          if (frame.apps_page_frame_seqid == frmseq) {
+            if (frame.tableRows) {
+              for (let framedata of frame.tableRows) {
+                for (let itemGroup of framedata) {
+                  if (itemGroup.Level5) {
+                    for (let item of itemGroup.Level5) {
+                      if (item.isValid !== undefined && !item.isValid) {
+                        isValid = item.isValid;
+                        item.touched = true;
+                      }
+                    }
+                  }
+                }
+              }
+            } else {
+              isValid = false;
+            }
+          }
+        }
+      }
+    }
+    return isValid;
+  }
+
+
+  async openPage(componentProps) {
+    if (componentProps.wscp.flag != 'P') {
+      this.globalObjects.mydatavariable = componentProps;
+    }
+
+    // this.itemClicked(event);
+    let modal1: any;
+    if (componentProps.wscp.object_code == "READ_NOTIFICATION") {
+      this.modalCtrl.dismiss();
+    }
+    if (componentProps.wscp.flag == 'P') {
+      componentProps.isModal = "P";
+      modal1 = await this.popOverCtrl.create({
+        component: SuperPage,
+        componentProps: componentProps,
+        backdropDismiss: true
+      });
+
+      modal1.onDidDismiss().then((detail: OverlayEventDetail) => {
+        this.globalObjects.clickedbutton = false;
+
+        this.openPage(this.globalObjects.mydatavariable)
+        // this.ngOnInit();
+        // if (detail) {
+        //   if (detail.data) {
+        //     if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+        //       this.ngOnInit();
+        //     }
+        //   } else {
+        //     this.getNotificationCount();
+        //   }
+        // }
+        
+      });
+      return await modal1.present();
+    }
+    else {
+
+      let currentCallObj = componentProps.wscp.object_code;
+      let previousCallObj = this.globalObjects.previousCallObj;
+
+      if (previousCallObj && currentCallObj && previousCallObj === currentCallObj) {
+        this.wsdp = componentProps.wsdp;
+        this.wscp = componentProps.wscp;
+        this.wsdpcl = componentProps.wsdpcl;
+        this.ngOnInit();
+      } else {
+
+        this.globalObjects.previousCallObj = currentCallObj;
+        let modal: any;
+
+        // console.log('vijay1111 ',componentProps.wscp.object_code);
+        componentProps.isModal = "M";
+       
+        modal = await this.modalCtrl.create({
+          component: SuperPage,
+          componentProps: componentProps,
+          id : JSON.stringify(componentProps.wscp.apps_item_seqid)
+        });
+
+        modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+          this.globalObjects.clickedbutton = false;
+          this.globalObjects.previousCallObj = "";
+          if (this.order_pageno == 2) {
+            this.globalObjects.summaryCartdeatail = [];
+            this.globalObjects.cartSummaryPlain = [];
+            this.order_pageno = 0;
+          }
+
+          if (detail) {
+            if (detail.data) {
+              if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+                this.ngOnInit();
+              }
+            } else {
+              this.getNotificationCount();
+            }
+          }
+          this.closeAllModal(componentProps);
+        });
+        return await modal.present();
+
+
+      }
+    }
+
+
+
+
+
+
+    //-------------popover page------------------------
+    // const popover = await this.popoverController.create({
+    //   component: SuperPage,
+    //   event: componentProps,
+    //   translucent: true,
+    //   componentProps: componentProps
+    // });
+    // return await popover.present();
+
+  }
+
+  async open_model_page(componentProps) {
+    // console.log(componentProps);
+    componentProps.isModal = "M";
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        // component: SuperPage,
+        component: EntryListPage,
+        componentProps: componentProps
+      });
+
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        if (detail.data) {
+          this.getPageInfo();
+          if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+            this.ngOnInit();
+          }
+        }
+        // this.data1 = detail.data;
+      }
+    });
+    return await modal.present();
+  }
+  async open_approval_page(componentProps) {
+    // console.log(componentProps);
+    componentProps.isModal = "M";
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: SuperPage,
+        // component: EntryListPage,
+        componentProps: componentProps
+      });
+    console.log(this.object_mast);
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+
+      if (detail) {
+        if (detail.data) {
+          this.getPageInfo();
+          if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+            this.ngOnInit();
+          }
+        } else if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+          this.ngOnInit();
+        }
+
+        // this.data1 = detail.data;
+      }
+    });
+    return await modal.present();
+  }
+
+
+
+  async open_model_multilevel_page(componentProps) {
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: MultiLevelTabPage,
+        componentProps: componentProps
+      });
+
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        // console.log('The result:', detail.data);
+        // this.data1 = detail.data;
+        if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+          this.ngOnInit();
+        }
+      }
+    });
+    return await modal.present();
+  }
+
+
+
+  // openMultiTabpage() {
+  //   this.navCtrl.navigateForward("multi-level-tab");
+  // }
+  async openNotification() {
+    if (this.isModal == "M") {
+      this.modalCtrl.dismiss();
+    }
+    let componentProps: any = {};
+    let wslp: any = {};
+    this.wscp = {};
+    let wsdp: any = [];
+    wslp = this.userDetails;
+    this.wscp.object_code = "READ_NOTIFICATION";
+    this.wscp.pageno = "null";
+    this.wscp.click_events_str = "get_object_config";
+    this.wscp.service_type = "get_object_config";
+
+
+    componentProps = {
+
+      "wslp": wslp,
+      "wscp": this.wscp,
+      "wsdp": wsdp
+    }
+
+    componentProps.isModal = "M";
+    // let componentProps = {
+    //   "wslp": {
+    //     "app_code_str": "EMP_DR"
+    //   },
+    //   "wscp": {
+    //     "object_code": "APP_NOTIFICATION",
+    //     "pageno": null,
+    //     "click_events_str": "get_object_config",
+    //     "service_type": "get_object_config"
+    //   },
+    //   "wsdp": [
+    //     {}
+    //   ]
+    // }
+
+
+    console.log("componrnt....", componentProps)
+
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: SuperPage,
+        componentProps: componentProps
+      });
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      this.wscp = {};
+      if (detail) {
+        if (detail.data) {
+          // this.getPageInfo();
+          if (this.operation_mode && this.operation_mode.indexOf('BACK_REFRESH') > -1) {
+            this.ngOnInit();
+          }
+        }
+        else {
+          this.getNotificationCount();
+        }
+        // this.data1 = detail.data;
+      }
+
+
+    });
+    return await modal.present();
+  }
+
+  opentoast() {
+    this.globalObjects.presentToastWithOptions("Error in Handler", "errorclass");
+  }
+
+  popDismiss() {
+
+    this.popoverdismiss = false;
+    this.popOverCtrl.dismiss();
+    // this.openPage( this.globalObjects.mydatavariable);
+    this.isModal = "Menu";
+  }
+
+  async closePage() {
+
+    // if (this.wscp.object_code == "READ_NOTIFICATION") {
+    //   this.modalCtrl.dismiss();
+    // this.wscp={};
+    // this.wsdp=[];
+    // this.wsdpcl=[];
+    // // } else {
+    // await this.modalCtrl.dismiss({
+    //   'dismissed': true
+    // });
+    this.modalCtrl.dismiss();
+    // }
+  }
+
+  getNotificationCount() {
+    let userDetails = this.globalObjects.getLocallData("userDetails");
+    var data = {
+      "parameters": userDetails
+    }
+    let url = "getNotificationCount";
+    try {
+      this.dataService.postData(url, data).then(res => {
+        let data: any = res;
+        // this.notificationCount = [];
+        if (data.responseStatus == "success") {
+          this.notificationCount = data.responseData;
+        }
+      })
+    } catch (error) {
+      alert("LHSSYS_PORTAL_NEWS DOESN'T EXIST !!");
+    }
+  }
+
+  refreshPage() {
+    if (this.tabflag) {
+      this.isModal = "Menu";
+      this.tabflag2 = true;
+      this.wscp = {};
+      this.wsdp = [];
+      this.userDetails = this.globalObjects.getLocallData("userDetails");
+      this.ngOnInit();
+    } else {
+      this.ngOnInit();
+    }
+  }
+
+  switchAppKey() {
+    //  this.navCtrl.
+    this.router.navigate(['appkey-collection']);
+  }
+
+
+  ionViewWillEnter() {
+    this.menuCtrl.enable(true);
+  }
+
+  ionViewDidLeave() {
+    this.events.publish("setappkeyInfoVisibility", 'N');
+  }
+
+  fabDrop() {
+    let top = this.fabbtn.nativeElement.getBoundingClientRect().top;
+    if (top < 48) {
+      this.events.publish("setappkeyInfoVisibility", 'Y');
+    } else {
+      this.events.publish("setappkeyInfoVisibility", 'N');
+    }
+  }
+
+  trackingEvent(type, event) {
+    if (type === 'START') {
+      this.globalObjects.setDataLocally("locationStartTime", new Date());
+      this.userDetails.interval_time = event.interval_time;
+      this.globalObjects.setDataLocally("userDetails", this.userDetails);
+      this.background.start(event.interval_time);
+    }
+    else {
+      this.globalObjects.destroyLocalData("locationStartTime");
+      this.background.stop();
+    }
+    if (event.click_events_arr.length > (event.click_events_count + 1)) {
+      event.click_events_count = event.click_events_count + 1;
+      this.itemClicked1(event);
+    }
+  }
+
+  ionViewWillLeave() {
+    this.modalCtrl.dismiss();
+  }
+
+
+  samePageForm(nextPageInfo) {
+    this.wsdp = nextPageInfo.wsdp;
+    this.wsdpcl = nextPageInfo.wsdpcl;
+    this.wscp.item_sub_type = nextPageInfo.wscp.item_sub_type;
+
+    if (!this.globalObjects.current_page_parameter.MODE) {
+      this.globalObjects.current_page_parameter.MODE = '';
+    }
+    let mainPage = this.object_mast.Level2[0].Level3
+
+    let newPage = nextPageInfo.page_no + 1;
+    let newPageInfo = []
+    newPageInfo = this.object_mast.Level2
+
+    for (let frame of newPageInfo) {
+      if (frame.apps_page_no == newPage) {
+        for (let obj of frame.Level3) {
+          mainPage.push(obj);
+        }
+      }
+    }
+
+    newPageInfo[nextPageInfo.page_no].Level3.splice(0, newPage);
+    this.events.publish("same_page", this.wsdp);
+    /* 
+  let obj_mast = []
+  obj_mast  = this.object_mast.Level2;
+  let arr_page = obj_mast[0].Level3
+  let newPage = obj_mast[nextPageInfo.page_no].Level3;
+
+  for(let  i = 0; i < newPage.length ; i++){
+    arr_page.push(newPage[i]);
+    
+  } */
+
+  }
+
+  shareViaWhatsApp(event) {
+    var object_mast = this.object_mast.Level2
+    for (let object of object_mast) {
+      for (let frame of object.Level3) {
+        let mobileNo;
+        let message;
+        if (frame.tableRows) {
+          for (let framedata of frame.tableRows) {
+            for (let itemGroup of framedata) {
+              if (itemGroup.Level5) {
+                for (let item of itemGroup.Level5) {
+                  if (item.item_name == "MOBILE_NUMBER" || item.item_name == "MOBILENO") {
+                    mobileNo = item.value
+                  } else if (item.item_name == "SMS" || item.item_name == "SMS_TEXT") {
+                    message = item.value
+                  }
+                }
+              }
+            }
+          }
+        }
+        try {
+          if (mobileNo && message) {
+            let platformVal = this.globalObjects.getLocallData("platformValue");
+            if (platformVal === "android" || platformVal === "ios") {
+              this.globalObjects.shareViaWhatsApp(mobileNo, message);
+            } else {
+              this.globalObjects.shareViaWhatsAppWeb(mobileNo, message);
+            }
+          }
+        } catch (error) {
+          console.log(error.message);
+          if (event.click_events_arr.length > (event.click_events_count + 1)) {
+            event.click_events_count = event.click_events_count + 1;
+            this.itemClicked1(event);
+          }
+        }
+        if (event.click_events_arr.length > (event.click_events_count + 1)) {
+          event.click_events_count = event.click_events_count + 1;
+          this.itemClicked1(event);
+        }
+      }
+    }
+  }
+
+  /*  approveReject(nextPageInfo){
+     let event_str = nextPageInfo.click_events_arr[nextPageInfo.click_events_count];
+       let APPROVAL_FLAG: any ;
+       let REMARK: any ;
+       if (event_str.indexOf("~")) {
+      //   nextPageInfo.wsdp.REMARK = APPROVAL_FLAG = event_str.split("~")[0];
+         nextPageInfo.wsdp[0].APPROVAL_FLAG = event_str.split("~")[1];
+       }
+       
+     let post_data = {
+       "wslp": this.userDetails,
+       "wscp": nextPageInfo.wscp,
+       "wsdp": nextPageInfo.wsdp
+     }
+     this.dataService.postData('S2U', post_data).then(res => {
+       console.log(res);
+     });
+   } */
+
+}
+
+
+
+
+

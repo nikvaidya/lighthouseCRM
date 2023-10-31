@@ -1,0 +1,39 @@
+<ion-row *ngIf="frame.apps_page_frame_name" class="align-center">
+  <ion-col col-12>
+    <h1 class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1>
+  </ion-col>
+</ion-row>
+<div *ngIf="showFrame">
+  <!-- <form #form="ngForm" name="form" (ngSubmit)="onSubmit(form)"> -->
+  <ng-container *ngIf= "frame.apps_frame_type == 'CANVAS'">
+    <div *ngFor="let framedata of frame.tableRows;let rowindex =index">
+      <ion-row *ngFor="let itemGroup of framedata" class="align-center">
+        <!-- [hidden]="item.item_visible_flag=='F'"   -->
+        <ion-col *ngFor="let item of itemGroup.Level5;let i=index"
+          [hidden]="(current_page_parameter.MODE && !(item.item_visible_flag && (item.item_visible_flag.indexOf(current_page_parameter.MODE)>-1)) )||item.item_visible_flag=='F'"
+          [size]="itemGroup.groupCol[i]">
+          <app-items [item]="item" [wscp]="wscp" (emitPass)="itemClicked($event,rowindex)"
+            (LHSOnChange)="itemValueChange($event,rowindex)"></app-items>
+        </ion-col>
+      </ion-row>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf= "frame.apps_frame_type == 'CANVAS-KPI'">
+      <div *ngFor="let itemGroup of frame.tableRows;let rowindex =index">
+          <ion-row  class="align-center">
+            <!-- [hidden]="item.item_visible_flag=='F'"   -->
+            <ion-col *ngFor="let item of itemGroup.Level5;let i=index"
+              [hidden]="(current_page_parameter.MODE && !(item.item_visible_flag && (item.item_visible_flag.indexOf(current_page_parameter.MODE)>-1)) )||item.item_visible_flag=='F'"
+              [size]="itemGroup.groupCol[i]">
+              <app-items [item]="item" [wscp]="wscp" (emitPass)="itemClickedKpi($event,rowindex,i)"
+                (LHSOnChange)="itemValueChange($event,rowindex)"></app-items>
+            </ion-col>
+          </ion-row>
+        </div>
+
+  </ng-container>
+    <!-- <ion-button type="submit">submit </ion-button> -->
+  <!-- </form> -->
+</div>
+

@@ -1,0 +1,28 @@
+ <!-- <ion-row>
+  <ion-col col-4>
+    <div class="tab-menu text-center">
+        <img src="assets/imgs/corporateFollwup.png">
+        <h6>ERP Approvals</h6>
+     </div>
+  </ion-col>
+  <ion-col col-4>
+      <div class="tab-menu text-center">
+          <img src="assets/imgs/corporateFollwup.png">
+          <h6>ERP Approvals</h6>
+       </div>
+    </ion-col> 
+    <ion-col col-4>  -->
+
+<div class="tab-menu text-center" (click)="buttonClick($event)">
+    <!-- <img src="assets/imgs/corporateFollwup.png"> -->
+    <div class="img-container">
+            <div class="img-circle">
+    <img [src]="globalObjects.getScopeUrl()+'getImage?id='+menutab.apps_item_seqid+'&appTheme='+globalObjects.appTheme">
+</div>
+</div>
+<div class="name-container">
+    <h6>{{menutab.prompt_name}}</h6>
+</div>
+</div>
+<!-- </ion-col>
+</ion-row> -->

@@ -1,0 +1,280 @@
+
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { CalendarModule, DayConfig, Colors } from 'ion2-calendar';
+import { CalendarComponentOptions } from 'ion2-calendar';
+import { ModalController } from '@ionic/angular';
+import {
+  CalendarModal,
+  CalendarModalOptions
+} from 'ion2-calendar';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { DataService } from 'src/app/services/data.service';
+import { DatePipe } from '@angular/common';
+@Component({
+  selector: 'app-frame-newcalender',
+  templateUrl: './frame-newcalender.component.html',
+  styleUrls: ['./frame-newcalender.component.scss'],
+})
+export class FrameNewcalenderComponent implements OnInit {
+  calenderData :any = [];
+  @Input() frame: any = {};
+  @Input() wsdp: any = {};
+  @Input() wsdpcl: any = {};
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  thead: any = [];
+  thead2: any = [];
+  current_page_parameter: any = {};
+  dispalyss: any = { "color": "red", "text-yellow": "pink" };
+  userDetails: any;
+  l_total_rows: number;
+  l_current_page: number;
+  c_from_row: number;
+  c_to_row: number;
+  l_total_remain_pages: number;
+  l_where_str: any;
+  filterFormData: any = [];
+  l_card_title: any;
+  tablerowsfilter: any;
+  currentEvents: any;
+  public show: boolean = false;
+  public show_filter: any = 'dontshow';
+  public horizontal_table: any = 'Show';
+  test: DayConfig[] = [];
+  cardFlag:boolean=false;
+  dateMulti: any;
+  collapseCard: boolean = true;
+  datePipe : DatePipe;
+//  Colors = 'dark';
+
+  event = {
+    title: '',
+    desc: '',
+    startTime: '',
+    endTime: '',
+    allDay: false
+  };
+  optionsMulti: CalendarComponentOptions = {
+ 
+    daysConfig: this.test,
+    pickMode: 'single',
+    from: new Date(2018, 1, 1),
+    monthPickerFormat: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+    color : 'dark'
+
+  };
+  flag: boolean = true;
+  loadCal: boolean;
+  constructor(public modalCtrl: ModalController, public globalObjects: GlobalObjectsService, private dataService: DataService) {
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+
+    // this.test.push({
+    //   date: new Date(2020, 1, 22),
+    //   marked: true, cssClass: 'unavailableDay', disable: true,
+    // })
+
+  }
+
+  ngOnInit() {
+    console.log(">>>>>>>>>>>>>",this.optionsMulti)
+    this.frame.calenderflag=true;
+    this.getData();
+
+    console.log("this.frme calender console", this.frame);
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    // this.event.startTime = ""
+
+
+    let frameFilterFlag = this.frame.frame_filter_flag;
+
+    let theaddata: any = [];
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    for (let itemGroup of this.frame.Level4) {
+      let filterFlag = false;
+      for (let itemMast of itemGroup.Level5) {
+        if (itemMast.item_filter_flag) {
+          filterFlag = true;
+        }
+
+
+        console.log(itemMast.item_type.indexOf('WHERE') > -1 || itemMast.item_visible_flag == 'F' ||
+          (this.current_page_parameter.MODE && (itemMast.item_visible_flag && (itemMast.item_visible_flag.indexOf(this.current_page_parameter.MODE) > -1)))
+        )
+        if (itemMast.item_type.indexOf('WHERE') > -1 || itemMast.item_visible_flag == 'F' ||
+          (this.current_page_parameter.MODE && (itemMast.item_visible_flag && (itemMast.item_visible_flag.indexOf(this.current_page_parameter.MODE) > -1)))
+        ) { } else {
+          theaddata.push(itemMast.prompt_name);
+        }
+      }
+      if (filterFlag) {
+        this.filterFormData.push(JSON.parse(JSON.stringify(itemGroup)));
+      }
+
+    }
+
+  }
+
+  currentdateCard(){
+    let date = new Date();
+    let dt =new DatePipe("en-US").transform(date, "dd-MMM-yyyy"); 
+    this.onDaySelect(dt);
+  }
+  onDaySelect(event) {
+    var cards : any = [];
+    let dt =new DatePipe("en-US").transform(event, "dd-MMM-yyyy"); 
+    // alert(dt);
+    for(let obj of this.calenderData){
+      let planDate = obj.find(x => x.Level5[0].item_name.toUpperCase().indexOf('date'.toUpperCase()) > -1 
+                                  && x.Level5[0].value.toUpperCase() ==   dt.toUpperCase() );
+
+    //  planDate=planDate.Level5[0].value.toUpperCase();                          
+      if(planDate){
+        planDate.Level5[0].value=new DatePipe("en-US").transform(planDate.Level5[0].value, "dd-MMM-yyyy").toUpperCase(); 
+        let status_value = obj.find(x => x.Level5[0].item_name.toUpperCase().indexOf('status'.toUpperCase()) > -1);
+        this.flag = false;
+        obj.status = '';
+        obj.status = (status_value.Level5[0].value == 'P') ? 'card-pending' : 'card-approval';
+        cards.push(obj);
+//         card-pending
+// card-approval
+      }
+    
+      this.frame.tableRows = cards;
+      this.frame.cardFlag=this.cardFlag;
+
+      cardFlag:Boolean;
+    }
+    if(!this.cardFlag){
+      this.cardFlag = true;
+    }
+
+    console.log('cards : ',cards)
+
+
+    // alert(event);
+  }
+
+  async basic() {
+    alert('theme')
+    const options: CalendarModalOptions = {
+
+      title: 'BASIC',
+      color: 'dark',
+      pickMode: 'multi'
+    };
+
+
+
+
+  }
+  addEvent(event) {
+    this.test.push({
+      title: event.title,
+      subTitle: event.subTitle,
+      date: new Date(this.event.startTime),
+      cssClass: 'unavailableDay',
+
+
+    });
+    this.emitPass.emit(this.test);
+    console.log("test event data", this.test)
+  }
+
+  datedata() {
+
+    alert(this.dateMulti)
+  }
+  itemClicked(event) {
+
+  }
+
+
+  getData() {
+    let wscp: any = {};
+    //wscp.service_type = "get_populate_data";
+    // if (this.frame.on_frame_load_str) {
+    wscp.service_type = this.frame.on_frame_load_str;
+    wscp.apps_page_frame_seqid = this.frame.apps_page_frame_seqid;
+    // wscp.item_sub_type = this.wscp_send_input.item_sub_type;
+
+    var data = {
+      "wslp": this.userDetails,
+      "wscp": wscp,
+      "wsdp": this.wsdp
+    }
+
+    let l_url = "S2U";
+    this.dataService.postData(l_url, data).then(res => {
+
+      this.globalObjects.hideLoading();
+      let data: any = res;
+      console.log("data response", data.responseStatus)
+      if (data.responseStatus == "success") {
+        let trows= [];
+        let objData = this.globalObjects.setPageInfo(data.responseData);
+        let tableData = objData.Level1;
+        let tableKey = Object.keys(tableData[0])
+
+        for (let table of tableData) {
+          let frameLevel4 = JSON.parse(JSON.stringify(this.frame.Level4))
+          for (let itemGroup of frameLevel4) {
+            for (let item of itemGroup.Level5) {
+              for (let key of tableKey) {
+                if ((item.item_name) && (item.item_name.toUpperCase() == key.toUpperCase())) {
+                  item.value = table[key]
+                }
+              }
+            }
+          }
+          trows.push(frameLevel4);
+        }
+        this.calenderData= trows;
+        this.frame.object_code="";
+        this.getCalenderData();
+
+        // });
+
+        console.log(" this.frame.tableRows", this.frame.tableRows)
+      }
+
+    }).catch(err => {
+      console.log("this.frame canvas err");
+
+      this.globalObjects.hideLoading();
+      this.globalObjects.presentToast("1.5 Something went wrong please try again later!");
+      console.log(err);
+    })
+
+  }
+
+  getCalenderData() {
+  
+    for (let obj of this.calenderData) {
+
+      // for (let item of obj) {
+      let planDate = obj.find(x => x.Level5[0].item_name.toUpperCase().indexOf('date'.toUpperCase()) > -1);
+      let planTitle = obj.find(x => x.Level5[0].item_name.toUpperCase().indexOf('task'.toUpperCase()) > -1);
+
+      this.test.push({
+        title: '',
+        subTitle: '',
+        date: new Date(planDate.Level5[0].value),
+        cssClass: 'days-btn my-cal',
+        marked: true
+      })
+
+      // }
+
+     
+    }
+    this.loadCal = true;
+    console.log('test array : =>', this.test);
+    this.optionsMulti.daysConfig=this.test;
+    this.currentdateCard();
+
+  }
+  
+
+
+
+
+}

@@ -1,0 +1,23 @@
+<div class="table-responsive">
+<table class='table table-kpi {{frame.css_class_frame}}'>
+  <caption>{{frame.apps_page_frame_name}}</caption>
+  <thead>
+  <tr>
+
+    <th *ngFor="let th of thead;let i=index" (click)="thClick(th,i)">{{th}}</th>
+
+  </tr>
+  </thead>
+
+ <tr *ngFor="let tableData of frame.tableRows;let rowindex=index">
+            <ng-container *ngFor="let itemGroup of tableData;">
+              <td *ngFor="let input_item of itemGroup;"
+                [hidden]="(current_page_parameter.MODE && !(input_item.item_visible_flag && (input_item.item_visible_flag.indexOf(current_page_parameter.MODE)>-1)) )||input_item.item_visible_flag=='F'">
+                <app-items [item]="input_item" (emitPass)="itemClicked($event,tableData,rowindex)" [frame_type]="frame.apps_frame_type"> 
+                </app-items>
+              </td>
+            </ng-container>
+  </tr>
+ 
+</table>
+</div>

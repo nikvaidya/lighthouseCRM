@@ -1,0 +1,48 @@
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-number-input',
+  templateUrl: './number-input.component.html',
+  styleUrls: ['./number-input.component.scss'],
+})
+export class NumberInputComponent implements OnInit {
+  @Input() numberinput: any;
+  @Input() frame_type: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+
+  current_page_parameter: any = {};
+
+  constructor(private globalObjects: GlobalObjectsService) {
+  }
+
+  ngOnInit() {
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+  }
+
+  onChange(onChange, numberInputname) {
+      this.emitOnChange.emit(this.numberinput)
+  }
+
+
+  cleardata() {
+    this.numberinput.value = "";
+  }
+
+  validateNumber(beforeDecimal: any, afterDecimal: any, itemValue) {
+    if (itemValue) {
+      beforeDecimal = beforeDecimal ? beforeDecimal : 0;
+      afterDecimal = afterDecimal ? afterDecimal : 0;
+      let preDecimal = itemValue.toString().split(".")[0];
+      let postDecimal = itemValue.toString().split(".")[1];
+      // if (preDecimal.length > beforeDecimal || postDecimal.length > afterDecimal) {
+      //   alert("please input data as Proper format");
+      //   let numberStr: string = (this.numberinput.value).toString();
+      //   let finalStr = numberStr.substring(0, numberStr.length - 1);
+      //   this.numberinput.value = finalStr.trim();
+      //   console.log(this.numberinput.value);
+      // }
+    }
+  }
+
+}

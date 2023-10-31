@@ -1,0 +1,67 @@
+.thumbnail-card
+{
+  border: 1px solid #e6e6e6;
+  --padding-start: 10px;
+  color: #423f3f;
+  ion-label
+  {
+    text-overflow: unset;
+    white-space: normal;
+    overflow: visible;
+  }
+  h1,h2,h3,h4,h5,h6,p,label,ion-label
+  {
+    color: #423f3f;
+  }
+  ion-thumbnail
+  {
+    width: 65px;
+    height: 65px;
+    margin-inline-end: 10px;
+    img
+    {
+        border-radius: 5px;
+    }
+  }
+}
+
+.card-pending{
+  .sr-no {
+    background: #ff5722;
+    color: #fff;
+    box-shadow: 5px 2px 10px #cc3c0f, inset -2px -1px 4px #da4e22
+}
+  .super-card-inner::after {
+    background: #FF5722;
+}
+.super-card-inner::before {
+  background: #ff5722;
+  box-shadow: 2px 7px 10px #b74e2d;
+}
+.super-card-inner .card-title {
+  border-bottom: 1px dashed #ff5722;
+}
+.super-card-inner {
+  border-bottom: 1px solid #ff5722;
+}
+}
+.card-approval{
+  .sr-no {
+    background: #40df73;
+    color: #fff;
+    box-shadow: 5px 2px 10px #17b94b, inset -2px -1px 4px #5eea8b;
+}
+  .super-card-inner::after {
+    background: #40df73
+}
+.super-card-inner::before {
+  background: #40df73;
+  box-shadow: 2px 7px 10px #4bda79;
+}
+.super-card-inner .card-title {
+  border-bottom: 1px dashed #40df73;
+}
+.super-card-inner {
+  border-bottom: 1px solid #40df73;
+}
+}

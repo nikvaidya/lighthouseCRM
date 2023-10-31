@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "310208929193",
+    "firebase_url": "https://lhserp-6d0d4.firebaseio.com",
+    "project_id": "lhserp-6d0d4",
+    "storage_bucket": "lhserp-6d0d4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:310208929193:android:0566ab5d56306d23",
+        "android_client_info": {
+          "package_name": "com.lhs.lhsapperp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "310208929193-qoa1e7q501261q2atpegns64d8c69n12.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd8oBZK1Wf5HxZmnPVXvtpnNVw-zrm8p4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "310208929193-qoa1e7q501261q2atpegns64d8c69n12.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "310208929193-drrssoi1btqpq1scu5acbfea6ccjpdis.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.lhs.lhsapperp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

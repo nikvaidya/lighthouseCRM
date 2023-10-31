@@ -1,0 +1,22 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-menu-tab',
+  templateUrl: './menu-tab.component.html',
+  styleUrls: ['./menu-tab.component.scss'],
+})
+export class MenuTabComponent implements OnInit {
+@Input() menutab:any;
+@Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  constructor(public globalObjects: GlobalObjectsService) { }
+
+  ngOnInit() {}
+
+  buttonClick(event) {
+
+    console.log('vijay this.button', this.menutab);
+    this.emitPass.emit(this.menutab);
+  }
+
+}

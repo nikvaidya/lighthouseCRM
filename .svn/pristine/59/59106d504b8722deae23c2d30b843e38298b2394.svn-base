@@ -1,0 +1,80 @@
+<ion-row>
+  <ion-col col-12>
+    <h1 class="frame-name position-relative">{{frame.apps_page_frame_name}}</h1>
+  </ion-col>
+</ion-row>
+
+<div *ngIf="showFrame">
+  <div *ngFor="let framedata of frame.tableRows;let rowindex =index">
+    <ion-row *ngFor="let itemGroup of framedata">
+      <ion-col *ngFor="let item of itemGroup.Level5;let i=index" [hidden]="item.item_visible_flag=='F'" size="12">
+        <app-items [item]="item" (emitPass)="itemClicked($event,rowindex)"
+          (emitOnChange)="itemValueChange($event,rowindex)"></app-items>
+      </ion-col>
+    </ion-row>
+  </div>
+
+
+  <div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <!-- <th></th> -->
+            <th>Addon</th>
+            <th>Rate</th>
+            <th>Amount</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let addon of addonPram ;let i=index">
+            <td>{{addon['ADDONNAME'+(i+1)]}}</td>
+            <td>
+              <ion-input style="border:1px solid black;" type="number" placeholder="Rate" *ngIf="i!=0"
+                [(ngModel)]="addon['AFRATE'+(i+1)]"
+                [readonly]="addon['AFRATEI'+(i+1)]=='L' || addon['AFRATEI'+(i+1)]=='M' || addon['AFRATEI'+(i+1)]=='A' ||addon['AFRATEI'+(i+1)]=='Z'"
+                [ngClass]="{'disableText' : addon['AFRATEI'+(i+1)]=='L' || addon['AFRATEI'+(i+1)]=='M' || addon['AFRATEI'+(i+1)]=='A' ||addon['AFRATEI'+(i+1)]=='Z' }">
+              </ion-input>
+            </td>
+            <td>
+              <ion-input text-right style="border:1px solid black;"  class="colalign" type="number" placeholder="value" 
+                [(ngModel)]="addon['AFIELD'+(i+1)]"
+                [disabled]=" i==0|| addon['AFRATEI'+(i+1)]=='N' || addon['AFRATEI'+(i+1)]=='O' || addon['AFRATEI'+(i+1)]=='P' || addon['AFRATEI'+(i+1)]=='Q' || addon['AFRATEI'+(i+1)]=='R' ||addon['AFRATEI'+(i+1)]=='S' || addon['AFRATEI'+(i+1)]=='V' || addon['AFRATEI'+(i+1)]=='E' || addon['AFRATEI'+(i+1)]=='F' || addon['AFRATEI'+(i+1)]=='A'"
+                [ngClass]="{'disableText' : i==0||addon['AFRATEI'+(i+1)]=='N' || addon['AFRATEI'+(i+1)]=='O' || addon['AFRATEI'+(i+1)]=='P' || addon['AFRATEI'+(i+1)]=='Q' || addon['AFRATEI'+(i+1)]=='R' ||addon['AFRATEI'+(i+1)]=='S' || addon['AFRATEI'+(i+1)]=='V' || addon['AFRATEI'+(i+1)]=='E' || addon['AFRATEI'+(i+1)]=='F' || addon['AFRATEI'+(i+1)]=='A'}">
+              </ion-input>
+            </td>
+            <td  >{{addon['AFRATEIDESC'+(i+1)]}}</td>
+          </tr>
+          <tr>
+            <td >Total Amount</td>
+            <td> </td>
+            <td>
+              <ion-input text-right style="border:1px solid black;background: #b9b6b6" type="number" placeholder="value" [(ngModel)]="TOTAL_AMT"
+                disabled class="disableText">
+              </ion-input>
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col col-12 text-center>
+        <ion-button type="button" round class="refresh-btn" (click)="refreshAddon();">Refresh addon
+          calculation</ion-button>
+      </ion-col>
+    </ion-row>
+
+<!--     <ion-row>
+      <ion-col col-12 class="text-center">
+        <ion-button type="button" round class="save-btn" (click)="backBtn()">Back</ion-button>
+        <ion-button type="button" round class="save-btn" (click)="saveByProcedure();">Save</ion-button>
+      </ion-col>
+    </ion-row> -->
+  </ion-grid>
+
+</div>

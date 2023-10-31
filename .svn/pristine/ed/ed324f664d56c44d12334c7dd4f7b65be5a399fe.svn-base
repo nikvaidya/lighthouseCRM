@@ -1,0 +1,44 @@
+.advance-filter-main
+{
+    ion-segment
+    {
+        flex-direction:column;
+       
+    }
+    ion-segment-button
+    {
+        min-height: 38px;
+    }
+    .col-left
+    {
+        border:1px solid #ccc;
+    }
+    .col-right
+    {
+        border:1px solid #ccc;   
+       
+    }
+
+    ion-list
+    {
+        width:100%;
+    }
+    ion-checkbox{
+        margin-top: 5px;
+        margin-bottom: 5px;
+        margin-inline-end: 10px;
+    }
+    ion-item
+    {
+        --min-height: 30px;
+        --padding-start: 5px;
+    }
+    ion-input
+    {
+        
+        background: url(../../../../assets/imgs/advance-search.png) #ececec right 10px top 10px;
+      background-repeat: no-repeat;
+       padding-right: 35px !important;
+      background-repeat:no-repeat;
+    }
+}

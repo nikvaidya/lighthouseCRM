@@ -1,0 +1,74 @@
+.twod-kpi
+{
+    text-align:center;
+   
+    width: 100%;
+   
+    .kpi-header
+    {
+        color:#fff;
+        font-size: 14px;
+        padding: 5px;
+        
+    }
+    .kpi-body
+    {
+        padding: 10px;
+    font-size: 25px;
+    font-weight: 500;
+    }
+}
+.twod-kpi.blue
+{
+    background: #d4e4f7;
+    .kpi-header
+    {
+        background: rgb(73, 144, 226);
+    }  
+    .kpi-body
+    {
+        color: #3672b7;
+}
+   
+}
+.twod-kpi.yellow
+{
+    background: #ffebd1;
+    .kpi-header
+    {
+        background: #e0902b;
+    }  
+    .kpi-body
+    {
+        color: #ce780d;
+}
+   
+}
+.twod-kpi.grey
+{
+    background: #d8d8d8;
+    
+    .kpi-header
+    {
+        background: #767b7d;
+    }  
+    .kpi-body
+    {
+        color: #565c5f;
+}
+   
+}
+.twod-kpi.green
+{
+    background: #d3f3d4;
+    
+    .kpi-header
+    {
+        background: #4CAF50;
+    }  
+    .kpi-body
+    {
+        color: #3a7f3d;
+}
+   
+}

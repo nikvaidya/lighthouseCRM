@@ -1,0 +1,10 @@
+<div class="smart-filter-section">
+  <div class="smart-filter-section__header">
+    <h5 class="m-0 d-inline-block">{{rFilter.item_name}}</h5>
+    <h6 class="m-0 d-inline-block float-right" >Rs.1 To Rs.100</h6>
+  </div>
+
+  <ion-range min="-0" max="100" [(ngModel)]="range" id="dual-range" dual-knobs pin color="primary">
+
+  </ion-range>
+</div>

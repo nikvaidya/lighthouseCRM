@@ -1,0 +1,37 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Routes, RouterModule } from '@angular/router';
+import { IonicModule } from '@ionic/angular';
+
+import { ComponentsModule } from '../../components/components.module';
+
+import { SuperPage } from './super.page';
+// import { EntryListPage } from '../entry-list/entry-list.page';
+import { MultiLevelTabPage } from '../multi-level-tab/multi-level-tab.page';
+import { FrameCardComponent } from 'src/app/components/frames/frame-card/frame-card.component';
+import { DragDropModule  } from '@angular/cdk/drag-drop'
+
+const routes: Routes = [
+  {path: '',
+  component: SuperPage},
+  // {path:'entry-list', component:EntryListPage},
+  {path:'app-multi-level-tab', component:MultiLevelTabPage},
+  {path:'app-frame-card', component:FrameCardComponent},
+];
+
+// <ion-item  [routerLink]="[p.url]" routerDirection="forward">
+/*{path: '',redirectTo: 'super',pathMatch: 'full'},*/
+@NgModule({
+  imports: [
+    CommonModule,
+    ComponentsModule,
+    FormsModule,
+    IonicModule,
+    DragDropModule,
+    RouterModule.forChild(routes)
+  ],
+  declarations: [SuperPage,MultiLevelTabPage],
+  entryComponents: [SuperPage,MultiLevelTabPage]
+})
+export class SuperPageModule {}

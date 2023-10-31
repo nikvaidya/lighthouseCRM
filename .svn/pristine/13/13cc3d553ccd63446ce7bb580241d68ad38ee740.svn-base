@@ -1,0 +1,86 @@
+
+<ng-container *ngIf="lovinput.item_sub_type!='LV'">
+<ion-item class="{{lovinput.css_class}}" >
+    <ion-label position="{{lovinput.position}}">{{lovinput.prompt_name}}</ion-label>
+    <ion-input type="text"
+ id="{{lovinput.item_name}}"
+ (click)="openLov()" [(ngModel)]="lovinput.value"[readonly]="true"
+      [required]="(current_page_parameter.MODE && (lovinput.data_required_flag && 
+        (lovinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||lovinput.data_required_flag=='T' 
+        ||(lovinput.prompt_name && lovinput.prompt_name[lovinput.prompt_name.length -1] =='*')" 
+      (ionChange)="onChange('ionChange');lovinput.isValid=lovInputName.valid"
+      (ngInit)="lovinput.isValid=lovInputName.valid" #lovInputName='ngModel'
+    ></ion-input>
+    <div class="input-buttons-container">
+     
+      <button class="input-btn float-right" (click)="openLov()"  ion-button icon-only small>
+        <ion-icon name="ios-arrow-forward"></ion-icon>
+    </button>
+    <button  *ngIf="lovinput.value" class="input-btn float-right"  ion-button icon-only small
+    (click)="cleardata()">
+        <ion-icon  name="close"></ion-icon>
+    </button>
+    </div>
+  </ion-item>
+  <div class="error" *ngIf="lovInputName.hasError('required') && lovinput.touched"> Please Enter
+    {{lovinput.prompt_name}}
+  </div>
+
+</ng-container>
+
+
+      
+
+
+  <div class="table-input-container" style="display:none;" *ngIf="lovinput.item_sub_type=='L_T'">
+    <div class="input-group table-lov-input">
+      <ion-input class="table-input"  type="text" 
+      (click)="openLov()" [(ngModel)]="lovinput.value"[readonly]="true"
+      [required]="(current_page_parameter.MODE && (lovinput.data_required_flag && 
+        (lovinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||lovinput.data_required_flag=='T' 
+        ||(lovinput.prompt_name && lovinput.prompt_name[lovinput.prompt_name.length -1] =='*')" 
+      (ionChange)="onChange('ionChange');lovinput.isValid=lovInputName.valid"
+      (ngInit)="lovinput.isValid=lovInputName.valid" #lovInputName='ngModel'></ion-input>
+      <div class="input-group-append">
+        <button class="lov-btn" (click)="openLov()" ion-button icon-only small>
+          <ion-icon name="ios-arrow-forward"></ion-icon>
+        </button>
+      </div>
+    </div>
+  
+    </div> 
+
+
+   <!-- below item item type is shown becuase of shashank sir told to vijay sir -->
+     <!-- we have to type related word which is present in lov list then click on lov side button to chose like options -->
+  <ng-container *ngIf="lovinput.item_sub_type=='LV'">
+     <ion-item class="{{lovinput.css_class}}"  >
+      <ion-label position="{{lovinput.position}}">{{lovinput.prompt_name}}</ion-label>
+      <ion-input type="text"
+         id="{{lovinput.item_name}}" [(ngModel)]="lovinput.value"
+        [required]="(current_page_parameter.MODE && (lovinput.data_required_flag && 
+          (lovinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+          ||lovinput.data_required_flag=='T' 
+          || (lovinput.prompt_name && lovinput.prompt_name[lovinput.prompt_name.length -1] =='*')" 
+        (ionChange)="onChange('ionChange');lovinput.isValid=lovInputName.valid"
+        (ngInit)="lovinput.isValid=lovInputName.valid" #lovInputName='ngModel'
+      ></ion-input>
+      <div class="input-buttons-container">
+       
+        <button class="input-btn float-right" (click)="openLov()"  ion-button icon-only small>
+          <ion-icon name="ios-arrow-forward"></ion-icon>
+      </button>
+      <button  *ngIf="lovinput.value" class="input-btn float-right"  ion-button icon-only small
+      (click)="cleardata()">
+          <ion-icon  name="close"></ion-icon>
+      </button>
+      </div>
+    </ion-item>
+    <div class="error" *ngIf="lovInputName.hasError('required') && lovinput.touched"> Please Enter
+      {{lovinput.prompt_name}}
+    </div>
+  </ng-container>
+
+  

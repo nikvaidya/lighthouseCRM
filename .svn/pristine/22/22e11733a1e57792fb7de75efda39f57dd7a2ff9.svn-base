@@ -1,0 +1,54 @@
+@import '../../../../mixins';
+
+.back{
+   background: #3880ff;
+}
+
+.text-band
+{
+ 
+   padding: 10px;
+   text-align: center;
+   color:#fff;
+   text-align:left;
+   position: relative;
+   min-height:60px;
+   overflow:hidden;
+   &::before
+   {
+      @include before-after;
+      top: -150px;
+      left: -14%;
+      width: 100%;
+      height: 313%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+   }
+   &::after
+   /* {
+      @include before-after;
+      bottom: 8px;
+    right: -8px;
+    width: 60px;
+    height: 60px;
+      background: url(../../../../../assets/imgs/text-band-img.png) no-repeat;
+   } */
+   h4
+   {
+       margin:0.3em 0em;
+   }
+   h5 {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.88);
+  }
+   .refresh-icon{
+      font-size: 21px;
+      position: absolute;
+      right: 10px;
+      top: 3px;  
+      ion-icon
+      {
+         color: rgba(0, 0, 0, 0.5215686274509804);
+      }
+   }
+}

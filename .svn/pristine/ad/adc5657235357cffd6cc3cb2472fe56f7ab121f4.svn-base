@@ -1,0 +1,20 @@
+.name-value-text
+{
+    --min-height:25px;
+    --padding-start: 0px;
+    border-bottom:1px solid #efefef !important;
+   .label-name,.label-value
+   {
+    white-space: normal;
+    text-overflow: unset;
+   }
+    .label-name
+    {
+        background: #efefef;
+        margin: 0px !important;
+        height: 100%;
+        padding-left: 10px;
+        color: #2d2d2d;
+        margin-right: 8px !important;
+    }
+}

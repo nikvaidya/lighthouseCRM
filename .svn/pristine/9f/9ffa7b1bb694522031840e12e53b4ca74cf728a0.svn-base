@@ -1,0 +1,40 @@
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DataService } from 'src/app/services/data.service';
+
+@Component({
+  selector: 'app-reset-password',
+  templateUrl: './reset-password.page.html',
+  styleUrls: ['./reset-password.page.scss'],
+})
+export class ResetPasswordPage implements OnInit {
+
+  password :any;
+  confPassword :any;
+  userCode: any;
+  constructor(private route:ActivatedRoute,private dataservice : DataService,private router:Router) { }
+
+  ngOnInit() {
+    this.userCode =this.route.snapshot.params.id;
+    console.log(this.userCode);
+  }
+
+  resetPassword(){
+    if(this.password != this.confPassword){
+      alert('Password Mismatch');
+    }else{
+
+      this.dataservice.getData("resetPasword?loginId="+encodeURIComponent(this.userCode)+'&password='+encodeURIComponent(this.password)).then(res=>{
+        console.log(res);
+        let data:any;
+        data=res;
+        if(data.updateStatus=="success"){
+          this.router.navigate(['login']);
+        }
+
+      });
+
+    }
+  }
+
+}

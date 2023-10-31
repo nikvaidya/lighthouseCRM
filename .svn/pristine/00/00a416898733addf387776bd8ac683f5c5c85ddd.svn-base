@@ -1,0 +1,974 @@
+import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
+
+import { Platform, NavController, IonRouterOutlet, AlertController, ModalController, Events, MenuController } from '@ionic/angular';
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { GlobalObjectsService } from './services/global-objects.service';
+import { Router } from '@angular/router';
+import { FCM } from '@ionic-native/fcm/ngx';
+import { BackgroundService } from './services/background.service';
+import { OverlayEventDetail } from '@ionic/core';
+import { EntryListPage } from './pages/entry-list/entry-list.page';
+import { DataService } from './services/data.service';
+import { ChangePasswordPage } from './pages/change-password/change-password.page';
+import { PartylistPage } from './pages/partylist/partylist.page';
+import { Market } from '@ionic-native/market/ngx';
+import { DynamicmodalPage } from './pages/dynamicmodal/dynamicmodal.page';
+import { Network } from '@ionic-native/network/ngx';
+import { BatteryStatus, BatteryStatusResponse } from '@ionic-native/battery-status/ngx';
+
+
+// import { BackgroundMode } from '@ionic-native/background-mode/ngx';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: 'app.component.html'
+})
+
+export class AppComponent {
+  refreshBtn: boolean = false;
+  otherlist: boolean = false;
+
+  networkInfo: any;
+  isAndroid: boolean = true;
+  toggleNotification: boolean = false;
+  toggleFab: boolean = true;
+  public appPages = [
+    {
+      title: 'Location Tracker',
+      url: '/home',
+      icon: 'home'
+    },
+    {
+      title: 'Super',
+      url: '/super',
+      icon: 'home'
+    },
+    // {
+    //   title: 'List',
+    //   url: '/list',
+    //   icon: 'list'
+    // }
+  ];
+  @ViewChild(IonRouterOutlet) routerOutlet: IonRouterOutlet;
+  userDetails: any;
+  entity_name: any = "";
+  default_entity: any;
+  entityCodeStrValList: any = [];
+  divCodeStrValList: any = [];
+  geoOrgList: any = [];
+  keys: any = [];
+  notificationMenu: boolean = true;
+  fabbuttonMenu: boolean = true;
+  selectedPartyName: any;
+  selectedPartyCode: any;
+  divCode: any = "";
+  entityCode: any = "";
+  geoOrgCode: any = "";
+  entityMap: any = {};
+  userValueList: any = [];
+  data: any = {};
+  selectedModalVal
+  appkeyInfo: any = 'N';
+  selectedName: any;
+  selectedCode: any;
+  theme: any;
+
+  fontRange: number;
+
+  themeOptions = [
+    {
+      class: "blue-theme-btn",
+      value: "theme-blue"
+    },
+    {
+      class: "green-theme-btn",
+      value: "theme-green"
+    },
+    {
+      class: "dark-theme-btn",
+      value: "theme-dark"
+    },
+    {
+      class: "maroon-theme-btn",
+      value: "theme-maroon"
+    },
+    {
+      class: "grey-theme-btn",
+      value: "theme-grey"
+    }
+  ]
+  appkey: any;
+  appArr: any;
+  dbName: any;
+  dbPassword: any;
+
+  constructor(
+    public menuCtrl : MenuController,
+    private cdr: ChangeDetectorRef,
+
+    private platform: Platform,
+
+    private splashScreen: SplashScreen,
+    private statusBar: StatusBar,
+    public globalObjects: GlobalObjectsService,
+    // private backgroundMode: BackgroundMode,
+    private router: Router,
+    private navCtrl: NavController,
+    private fcm: FCM,
+    public alertController: AlertController,
+    public backgroundService: BackgroundService,
+    public modalCtrl: ModalController,
+    public events: Events,
+    public dataService: DataService,
+    private market: Market, private nav: NavController,
+    private background: BackgroundService,
+    private network: Network, private battery : BatteryStatus) {
+
+    this.theme = localStorage.getItem('theme');
+
+    this.fontRange = globalObjects.fontSize;
+
+    // cache.setDefaultTTL(60 * 60 * 60); //for one day
+    this.initializeApp();
+
+    console.log("network............", this.network)
+
+    if (this.globalObjects.getLocallData("userDetails")) {
+      this.navCtrl.navigateRoot('super');
+    }
+
+     
+    this.network.onConnect().subscribe(() => {
+      this.networkInfo = this.network;
+      this.globalObjects.networkStatus = true;
+        var connectivity_mode;
+      
+        if (this.network.type == 'wifi') {
+            connectivity_mode = 'wifi'
+          } else if (this.network.type == '3g') {
+            connectivity_mode = '3g';
+          } else if (this.network.type == '4g') {
+            connectivity_mode = '4g';
+          } else if (this.network.type == 'ethernet') {
+            connectivity_mode = 'ethernet';
+          }
+          else{
+            connectivity_mode = 'cellular';  
+          }
+        
+        this.globalObjects.setDataLocally('connectivity_mode',connectivity_mode);
+      //  this.globalObjects.setDataLocally('network_speed',network_speed);
+      events.publish("uploadOfflineData", "RANJEET");
+    }, error => console.error(error));
+    this.network.onDisconnect().subscribe(() => {
+      this.globalObjects.networkStatus = false;
+      this.globalObjects.displayCordovaToast('You are offline...');
+    }, error => console.error(error));
+
+
+    this.default_entity = "";
+    this.events.subscribe("setappkeyInfoVisibility", (res) => {
+      this.appkeyInfo = res;
+    })
+  }
+
+
+  ngOnInit() {
+    
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+    this.selectedPartyName = this.globalObjects.getLocallData("partyName");
+    this.selectedPartyCode = this.globalObjects.getLocallData("partyCode");
+    window.addEventListener('batterystatus',this.onBatteryStatus,false);
+
+    
+    if (this.userDetails) {
+      this.divCode = this.userDetails.div_code;
+      this.entityCode = this.userDetails.entity_code;
+      this.geoOrgCode = this.userDetails.geo_org_code;
+    }
+    
+
+    this.events.subscribe("entity_name", (data) => {
+      this.userDetails = this.globalObjects.getLocallData("userDetails");
+      this.entity_name = data;
+      //  this.getGeoOrgCode(this.userDetails);
+    });
+
+    if (this.globalObjects.getLocallData("entityCodeStr")) {
+      this.events.subscribe("GET_SIDE_MENU_DATA", (data) => {
+        //   this.getUserDetails();
+      })
+    }
+    this.events.subscribe("entity_code_str", (ecs) => {
+      if (this.userDetails) {
+        this.divCode = this.userDetails.div_code;
+        this.entityCode = this.userDetails.entity_code;
+        this.geoOrgCode = this.userDetails.geo_org_code;
+      }
+      let entity_str = ecs;
+
+      if (entity_str) {
+        this.entityCodeStrValList = []
+        if (entity_str.indexOf('#') > -1) {
+          let ent_str = entity_str.split('#');
+          if (ent_str) {
+            this.entityMap = {};
+            for (let e_s of ent_str) {
+              if (e_s.indexOf('~') > -1) {
+                let entity = e_s.split('~');
+                let entityCodeStrVal: any = {};
+
+                // -----------ENTITY MAP------------------//
+
+                let key = entity[0].trim();
+                this.entityMap[key] = entity[1].trim();
+
+                // -----------ENTITY MAP------------------//
+                entityCodeStrVal.code = entity[0];
+                entityCodeStrVal.name = entity[1];
+                this.entityCodeStrValList.push(entityCodeStrVal);
+
+              }
+            }
+          }
+        }
+        else {
+          let entity = ecs.split('~');
+          let entityCodeStrVal: any = {}
+          entityCodeStrVal.code = entity[0];
+          entityCodeStrVal.name = entity[1];
+          this.entity_name = entity[1];
+          this.entityCodeStrValList.push(entityCodeStrVal);
+        }
+      }
+
+      // this.entity_name = ecs
+    });
+
+    let locationTrackingStarted = this.globalObjects.getLocallData("locationTrackingStarted");
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+
+    if (locationTrackingStarted == true && this.userDetails) {
+      let locationStartTime = this.globalObjects.getLocallData("locationStartTime");
+      var inpDate = new Date(locationStartTime);
+      var currDate = new Date();
+      if (inpDate.setHours(0, 0, 0, 0) == currDate.setHours(0, 0, 0, 0)) {
+        let interval_time = this.userDetails.interval_time;
+        this.backgroundService.start(interval_time);
+        this.globalObjects.displayCordovaToast("Background Process Started..");
+      }
+    }
+
+    this.events.subscribe("toggleFab", res=>{
+      this.toggleFab =  res;
+    })
+
+    this.events.subscribe("toggleNotification", res=>{
+      this.toggleNotification =  res;
+    })
+
+  }
+  onBatteryStatus(status) {
+    let level:any = status.level;
+    // alert('Level: ' + level)
+    console.log('Level: ' + status.level + ' isPlugged: ' + status.isPlugged);
+    this.globalObjects.setDataLocally('battery_level', JSON.stringify(level));
+    
+  }
+
+  callmenu() {
+    this.events.subscribe("goingsuper", () => {
+      this.ngOnInit();
+    })
+  }
+  initializeApp() {
+    this.platform.ready().then(() => {
+      this.statusBar.styleBlackTranslucent();
+      if (this.platform.is('android')) {
+        this.statusBar.overlaysWebView(false);
+        // this.statusBar.backgroundColorByHexString('#000');
+      }
+      if (this.platform.is('ios')) {
+        this.statusBar.overlaysWebView(true);
+        // this.statusBar.backgroundColorByHexString('#000');
+      }
+      // this.statusBar.backgroundColorByName("red");
+      // this.backgroundMode.enable();
+      this.splashScreen.hide();
+
+      // this.appVersion.getAppName().then(value => {
+      //   alert("name"+value)
+      // }).catch(err => {
+      //   alert(err);
+      // });
+
+      // this.appVersion.getPackageName().then(value => {
+      //   alert("packagename"+value)
+      // }).catch(err => {
+      //   alert(err);
+      // });
+
+      // this.appVersion.getVersionCode().then(value => {
+      // alert("versioncode"+value)
+      // }).catch(err => {
+      //   alert(err);
+      // });
+
+      // this.appVersion.getVersionNumber().then(value => {
+      //   alert("version_number"+value)
+      // }).catch(err => {
+      //   alert(err);
+      // });
+
+
+      // const updateUrl = "http://203.193.167.118:8088/App/updateapp.xml";
+      // this.appUpdate.checkAppUpdate(updateUrl).then(update => {
+      //   alert("Update Status:  " + JSON.stringify(update));
+      // }).catch(error => {
+      //   alert("Error: " + error);
+      // });
+
+
+      this.setPlatformValue();
+      // notification start ----------------------------
+      this.fcm.subscribeToTopic('all');
+      this.fcm.getToken().then(token => {
+        //  alert("Token : " + token);
+        if (token) {
+          this.globalObjects.setDataLocally("device_token", token);
+        }
+      });
+
+
+      // this.fcm.getToken().then(token => {
+      //   backend.registerToken(token);
+      // });
+
+      this.fcm.onNotification().subscribe(data => {
+        if (data.wasTapped) {
+          this.openPage();
+        } else {
+          this.openPage();
+        }
+      });
+      this.fcm.onTokenRefresh().subscribe(token => {
+        if (token) {
+       //   alert("device_token"+token);
+          this.globalObjects.setDataLocally("device_token", token);
+        }
+      });
+      // notification end ----------------------------
+
+      //---------backButton START
+      this.platform.backButton.subscribeWithPriority(0, () => {
+        if (this.router.url === '/super' || this.router.url === '/login' || this.router.url === '/appkey-collection' || this.router.url === '/appkey-validation') {
+          //  if (this.router.url in ('/super','/login','/appkey-collection','/appkey-validation')) {
+          this.confirmExit();
+        } else if (this.routerOutlet && this.routerOutlet.canGoBack()) {
+          this.routerOutlet.pop();
+        } else {
+          this.confirmExit();
+        }
+      });
+      //---------backButton END
+
+    })
+  
+   
+
+  }
+  getUserDetails() {
+    let url = "getUserParams";
+    let entityCodeStr = this.globalObjects.getLocallData("entityCodeStr");
+    this.userDetails.entityCodeStr = entityCodeStr;
+    var data = {
+      "parameters": this.userDetails
+    }
+    this.dataService.postData(url, data).then(res => {
+      let response: any = res;
+      if (response) {
+        this.userValueList = response.responseData;
+        if (this.userValueList.length > 0) {
+          for (let obj in this.userDetails) {
+            for (let i = 0; i < this.userValueList.length; i++) {
+              if (obj == this.userValueList[i].item_name) {
+                this.userValueList[i].item_name1 = this.userDetails[obj];
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  dropdwnValChng(event, item_name) {
+
+    let userDetails = this.globalObjects.getLocallData('userDetails');
+    userDetails[item_name] = (event.detail.value).trim();
+    this.globalObjects.setDataLocally('userDetails', userDetails);
+    userDetails.item_name = item_name;
+    let url = "getDependentValue";
+    var data = {
+      "parameters": userDetails
+    }
+
+    this.dataService.postData(url, data).then(response => {
+      let data: any = response;
+      let final_data = JSON.parse(JSON.stringify(data));
+      if (final_data.responseStatus == 'Success') {
+        let dependentVal: any = [];
+        dependentVal = final_data.responseData;
+        for (let obj of dependentVal) {
+          if (obj.result == null) {
+            for (var i = 0; i < this.userValueList.length; i++) {
+              if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                this.userValueList[i].item_name1 = "";
+                this.userValueList[i].result = [{}];
+              }
+            }
+          }
+          else if (obj.result.length == 1) {
+            for (var i = 0; i < this.userValueList.length; i++) {
+              if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                this.userValueList[i].item_name1 = obj.result[0].CODE;
+                //  this.userValueList[i].result=[];
+                this.userValueList[i].result = obj.result;
+              }
+            }
+          } else {
+            for (var i = 0; i < this.userValueList.length; i++) {
+              if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                this.userValueList[i].item_name1 = "";
+                this.userValueList[i].result = obj.result;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  async openPage() {
+
+    let componentProps: any = {};
+
+    componentProps = {
+      "click_events_str": "go_approval_tab",
+      "wsdp": [
+        {
+          "185": "1",
+          "186": "SQ18215-001",
+          "187": "INDIRA METAL (J&K)",
+          "188": "1947000",
+          "189": "15-FEB-19",
+          "191": "6",
+          "222": "QTNS",
+          "562": null
+        }
+      ],
+      "wscp": {
+        "object_code": "APPROVAL_DETAIL_ORDER",
+        "item_sub_type": "SIMPLE_TEXT_BUTTON",
+        "pageno": null,
+        "click_events_str": "go_approval_tab",
+        "apps_page_frame_seqid": "37",
+        "apps_item_seqid": "700",
+        "apps_page_no": "1",
+        "service_type": "APPROVAL_DETAIL"
+      },
+      "isModal": true,
+      "wslp": {
+        "userName": "Gurudev  Singh",
+        "user_code": "SSD27",
+        "message": "User is authenticated",
+        "module": "EMP_DR",
+        "entity_code": "M3",
+        "division": "    SM",
+        "acc_year": "19-20",
+        "dept_code": null,
+        "acc_code": "SSD27",
+        "acc_name": null,
+        "dashboardLink": null,
+        "notif_topic": null,
+        "emp_code": "M0620",
+        "login_user_flag": "E",
+        "geo_org_code": "PI.NI.JM.JA.JU",
+        "geo_org_name": "Jammu",
+        "bill_entry_catg_preference": "theme-maroon",
+        "app_code_str": "EMP_DR",
+        "otp": {
+          "resulStatus": "sucess",
+          "otp": "950811",
+          "resulString": "We have sent you an OTP(one time password), please check and enter otp)"
+        },
+        "division_data": "",
+        "password": "123"
+      }
+    }
+
+
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: EntryListPage,
+        componentProps: componentProps
+      });
+
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        // this.data1 = detail.data;
+      }
+    });
+    await modal.present();
+  }
+
+  async confirmExit() {
+    const alert = await this.alertController.create({
+      header: 'Exit App!',
+      message: 'Do you want to exit app?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: () => {
+          }
+        }, {
+          text: 'Yes',
+          handler: () => { //takes the data 
+            if (this.backgroundService.isTracking) {
+              this.backgroundService.moveToBackgroundLTStart();
+            } else {
+              navigator['app'].exitApp();
+
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  logout() {
+    this.globalObjects.fabMannualMode = false;
+    this.globalObjects.notiBellMannualMode = false;
+    this.globalObjects.destroyLocalData("userDetails");
+    this.globalObjects.destroyLocalData("apptype");
+    this.globalObjects.destroyLocalData("scopeUrl");
+    this.globalObjects.destroyLocalData("valueFormat");
+    this.globalObjects.destroyLocalData("partyName");
+    this.globalObjects.destroyLocalData("partyCode");
+    this.globalObjects.destroyLocalData("tabParam");
+    this.globalObjects.destroyLocalData("localNotif");
+    this.globalObjects.destroyLocalData("archieve_Data");
+    this.globalObjects.destroyLocalData("LoginUserAccCode");
+    this.globalObjects.destroyLocalData("app-theme");
+    this.globalObjects.destroyLocalData("");
+    this.globalObjects.destroyLocalData("locationStartTime");
+    // this.router.navigate(['login']);
+    this.navCtrl.navigateRoot('login');
+
+  }
+  gotosuper() {
+    // let user_code="ssd27";
+    // let password="12";
+    // let loginFlag="";
+    // let deviceValidation = this.globalObjects.getLocallData("device_validation");
+    // let token = this.globalObjects.getLocallData("device_token");
+    // let appKey = this.globalObjects.getLocallData("appKey");
+    // let entityCodeStr = this.globalObjects.getLocallData("entityCodeStr");
+    // var appDataArr: any = this.globalObjects.getLocallData("appData");
+    // let url = 'login?userId=' + (user_code).trim() + '&password=' + encodeURIComponent(password) +
+    //   '&deviceId=' + encodeURIComponent(this.globalObjects.device.uuid) + '&deviceName=' + encodeURIComponent(this.globalObjects.device.model)
+    //   + '&notificationToken=' + encodeURIComponent(token) + "&appKey=" + appKey + "&appkeyValidationFlag=" + deviceValidation + "&OTPFlag=" + loginFlag
+    //   + "&entityCodeStr=" + encodeURIComponent(entityCodeStr);
+
+    this.events.publish("goToSuper", "LHS");
+  }
+
+
+
+  setPlatformValue() {
+    if (!this.globalObjects.getLocallData('platformValue')) {
+      try{
+      if (this.platform.is('ios')) {
+        this.isAndroid = false;
+        this.globalObjects.setPlatformValue('ios');
+        this.globalObjects.setDataLocally('platformValue', 'ios');
+      } else if (this.platform.is('android')) {
+        this.isAndroid = true;
+        this.globalObjects.setPlatformValue('android');
+        this.globalObjects.setDataLocally('platformValue', 'android');
+      } else {
+        this.globalObjects.setDataLocally('platformValue', 'browser');
+      }
+    }catch(e){
+      alert(e);
+      this.globalObjects.setDataLocally('platformValue', 'browser');
+    }
+    }
+  }
+
+  segmentChanged(event) {
+    this.globalObjects.appTheme = event.detail.value;
+    localStorage.setItem('theme', event.detail.value);
+  }
+
+  entityChanged(event) {
+    let userDetails = this.globalObjects.getLocallData('userDetails');
+    this.globalObjects.setDataLocally('entityCode', (event.detail.value).trim());
+    let ent_code = event.detail.value;
+
+    let ent_name = this.entityMap[ent_code];
+
+    this.entity_name = ent_name;
+
+    userDetails.entity_name = ent_name;
+    userDetails.entity_code = (event.detail.value).trim();
+    this.entityCode = (event.detail.value).trim();
+    this.globalObjects.setDataLocally('userDetails', userDetails);
+
+
+    //this.getDivisionCode(userDetails, event.detail.value);
+    this.events.publish("refresh_app", "RANJEET");
+  }
+
+  getDivisionCode(userDetails: any, entity_code) {
+    // let url = "getDivisionCode?entityCode=" + encodeURIComponent(entity_code.trim()) + "&userCode=" + encodeURIComponent(user_code.trim());
+    let url = "getDivisionCode";
+    userDetails.entity_code = entity_code;
+    var data = {
+      "parameters": userDetails
+    }
+    this.dataService.postData(url, data).then(res => {
+      let data1: any = res;
+      this.divCodeStrValList = [];
+      if (data1.length > 0) {
+        this.divCodeStrValList = JSON.parse(JSON.stringify(data1));
+      } else {
+
+        this.divCodeStrValList = JSON.parse(JSON.stringify(data1));
+      }
+      // console.log(data.divCodeList);
+      // let divCodeStr = data.divCodeList;
+      // if (divCodeStr) {
+      //   if (divCodeStr.indexOf("#") > -1) {
+      //     let divCodeArr: any = divCodeStr.split("#");
+      //     if (divCodeArr) {
+      //       for (let divCodeS of divCodeArr) {
+      //         if (divCodeS.indexOf("~") > -1) {
+      //           let divison = divCodeS.split("~");
+      //           let divCodeStrVal: any = {}
+      //           divCodeStrVal.code = divison[0];
+      //           divCodeStrVal.name = divison[1];
+      //           this.divCodeStrValList.push(divCodeStrVal);
+      //         }
+      //       }
+      //     }
+      //   } else {
+      //     let divison = divCodeStr.split("~");
+      //     let divCodeStrVal: any = {}
+      //     divCodeStrVal.code = divison[0];
+      //     divCodeStrVal.name = divison[1];
+      //     this.divCodeStrValList.push(divCodeStrVal);
+      //   }
+      // } else {
+      //   this.divCodeStrValList = [];
+      // }
+    })
+
+  }
+
+  divisionChanged(event) {
+    let userDetails = this.globalObjects.getLocallData('userDetails');
+    this.globalObjects.setDataLocally('divCode', (event.detail.value).trim());
+    userDetails.div_code = (event.detail.value).trim();
+    this.divCode = (event.detail.value).trim();
+    this.globalObjects.setDataLocally('userDetails', userDetails);
+    this.events.publish("refresh_app", "RANJEET");
+  }
+
+  geoOrgCodeChanged(event) {
+    let userDetails = this.globalObjects.getLocallData('userDetails');
+    userDetails.geo_org_code = (event.detail.value).trim();
+    this.geoOrgCode = (event.detail.value).trim();
+    this.globalObjects.setDataLocally('userDetails', userDetails);
+  }
+
+  getGeoOrgCode(userDetails: any) {
+    let url = "getGeoOrgCode";
+    var data = {
+      "parameters": userDetails
+    }
+    this.dataService.postData(url, data).then(res => {
+      this.geoOrgList = res;
+    })
+  }
+
+
+
+  async changePassword() {
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: ChangePasswordPage,
+      });
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+      }
+    });
+    await modal.present();
+  }
+
+
+  async openpartylist() {
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: PartylistPage
+      });
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        let data: any = detail.data;
+        this.selectedPartyName = data.partyName;
+        this.selectedPartyCode = data.partyCode;
+
+      }
+    });
+    await modal.present();
+  }
+
+  async openDynamicModal(data) {
+    console.log('DynamiCModal', JSON.stringify(data));
+    let modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: DynamicmodalPage,
+        componentProps: {
+          modalData: data
+        }
+      });
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        let resData: any = detail.data;
+        if (this.userValueList.length > 0) {
+          for (let i = 0; i < this.userValueList.length; i++) {
+            if (this.userValueList[i].item_name == data.item_name) {
+              this.userValueList[i].item_name1 = resData.VALUE;
+            }
+          }
+        }
+        this.selectedName = resData.VALUE;
+        this.selectedCode = resData.CODE;
+        let userDetails = this.globalObjects.getLocallData("userDetails");
+        userDetails.item_name = data.item_name;
+        userDetails[data.item_name] = resData.CODE;
+        this.globalObjects.setDataLocally('userDetails', userDetails);
+        let url = "getDependentValue";
+        var obj = {
+          "parameters": userDetails
+        }
+        this.dataService.postData(url, obj).then(response => {
+          let data: any = response;
+          let final_data = JSON.parse(JSON.stringify(data));
+          if (final_data.responseStatus == 'Success') {
+            let dependentVal: any = [];
+            dependentVal = final_data.responseData;
+            for (let obj of dependentVal) {
+              if (obj.result == null) {
+                for (var i = 0; i < this.userValueList.length; i++) {
+                  if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                    this.userValueList[i].item_name1 = "";
+                    this.userValueList[i].result = [{}];
+                  }
+                }
+              }
+              else if (obj.result.length == 1) {
+                for (var i = 0; i < this.userValueList.length; i++) {
+                  if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                    this.userValueList[i].item_name1 = obj.result[0].CODE;
+                    //  this.userValueList[i].result=[];
+                    this.userValueList[i].result = obj.result;
+                  }
+                }
+              } else {
+                for (var i = 0; i < this.userValueList.length; i++) {
+                  if (obj.prompt_name == this.userValueList[i].prompt_name) {
+                    this.userValueList[i].item_name1 = "";
+                    this.userValueList[i].result = obj.result;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    });
+    await modal.present();
+  }
+
+
+  compareById(o1, o2) {
+    return o1.id === o2.id
+  }
+
+  checkForUpdate() {
+    this.market.open('com.lhs.lhsapperp');
+  }
+
+  signalRefresh() {
+    this.globalObjects.checkAndSetScopeUrl().then(() => {
+      this.globalObjects.displayCordovaToast("Connected..");
+      this.globalObjects.hideLoading();
+    }, () => { this.globalObjects.hideLoading(); })
+  }
+
+  openAppkeyInfo(){
+    let lockTime = this.globalObjects.getLocallData("openAppkeyInfoTime");
+    let openAppkeyInfoCount = this.globalObjects.getLocallData('openAppkeyInfoCount');
+    let expiryTime: any;
+    if (lockTime != null && lockTime != "") {
+      let lockTime1: any = new Date(lockTime);
+      let now: any = new Date();
+      expiryTime = Math.abs((lockTime1.getTime() - now.getTime()) / 60000);
+    }
+    if (openAppkeyInfoCount) {
+      if (openAppkeyInfoCount > 2) {
+        if (expiryTime <= 1) {
+          //nevigate to page
+          this.router.navigate(['/appkey-info']);
+          this.globalObjects.setDataLocally('openAppkeyInfoCount', 0);
+        } else {
+          this.globalObjects.setDataLocally('openAppkeyInfoCount', 2);
+          this.globalObjects.setDataLocally('openAppkeyInfoTime', new Date());
+          alert("You have not privilages to open appkey info page?");
+        }
+      } else {
+        openAppkeyInfoCount = openAppkeyInfoCount + 1;
+        this.globalObjects.setDataLocally('openAppkeyInfoCount', openAppkeyInfoCount);
+        alert("You have not privilages to open appkey info page?");
+      }
+    } else {
+      this.globalObjects.setDataLocally('openAppkeyInfoCount', 2);
+      this.globalObjects.setDataLocally('openAppkeyInfoTime', new Date());
+      alert("You have no privilages to open appkey info page?");
+    }
+  }
+
+  refreshBlob() {
+    let lockTime = this.globalObjects.getLocallData("resetBlobDataTime");
+    let resetBlobDataCount = this.globalObjects.getLocallData('resetBlobDataCount');
+    let expiryTime: any;
+    if (lockTime != null && lockTime != "") {
+      let lockTime1: any = new Date(lockTime);
+      let now: any = new Date();
+      expiryTime = Math.abs((lockTime1.getTime() - now.getTime()) / 60000);
+    }
+    if (resetBlobDataCount) {
+      // let resetBlobDataCount = this.globalObjects.getLocallData('resetBlobDataCount');
+      if (resetBlobDataCount > 2) {
+        if (expiryTime <= 1) {
+          let url = "resetBlobObject";
+          this.dataService.getData(url).then((res: any) => {
+            console.log(res);
+            let status = res.responseStatus;
+            if (status == "success") {
+              alert("Data refreshed..!!");
+              this.globalObjects.destroyLocalData('resetBlobDataCount');
+              this.globalObjects.destroyLocalData('resetBlobDataTime');
+            }
+          })
+        } else {
+          this.globalObjects.setDataLocally('resetBlobDataCount', 2);
+          this.globalObjects.setDataLocally('resetBlobDataTime', new Date());
+          alert("You have not privilages to refresh object data?");
+        }
+      } else {
+        resetBlobDataCount = resetBlobDataCount + 1;
+        this.globalObjects.setDataLocally('resetBlobDataCount', resetBlobDataCount);
+        alert("You have not privilages to refresh object data?");
+      }
+    } else {
+      this.globalObjects.setDataLocally('resetBlobDataCount', 2);
+      this.globalObjects.setDataLocally('resetBlobDataTime', new Date());
+      alert("You have not privilages to refresh object data?");
+    }
+  }
+
+  switchToCollection() {
+    this.globalObjects.destroyLocalData("userDetails");
+    this.globalObjects.destroyLocalData("apptype");
+    this.globalObjects.destroyLocalData("scopeUrl");
+    this.globalObjects.destroyLocalData("valueFormat");
+    this.globalObjects.destroyLocalData("partyName");
+    this.globalObjects.destroyLocalData("partyCode");
+    this.globalObjects.destroyLocalData("tabParam");
+    this.globalObjects.destroyLocalData("localNotif");
+    this.globalObjects.destroyLocalData("archieve_Data");
+    this.globalObjects.destroyLocalData("LoginUserAccCode");
+    this.globalObjects.destroyLocalData("app-theme");
+    this.globalObjects.destroyLocalData("");
+    this.navCtrl.navigateRoot('appkey-collection');
+  }
+
+  openInBrowsser() {
+    window.open("http://203.193.167.118:8888/lhswmalogviewer/", "_blank");
+  }
+
+  openBrowsserBuild() {
+    window.open("http://203.193.167.118:8888/LHSAPP/", "_blank");
+  }
+
+  //Show and hide notification icon
+  toggleNotiFunc(toggleNotification) {
+    this.events.publish("toggleNotification", toggleNotification);
+    this.events.publish("notiBellMannualMode", true);
+  }
+
+  //Show and hide notification icon
+  toggleFabFunc(toggleFab) {
+    this.events.publish("toggleFab", toggleFab);
+    this.events.publish("fabMannualMode", true);
+  }
+
+  refreshUserSettings() {
+    this.getUserDetails();
+  }
+
+  hideRefresh() {
+    if (this.refreshBtn) {
+      this.refreshBtn = false;
+    } else {
+      this.refreshBtn = true;
+      this.refreshUserSettings();
+    }
+  }
+
+
+
+  hideOtherlist() {
+    if (this.otherlist) {
+      this.otherlist = false;
+    } else {
+      this.otherlist = true;
+    }
+  }
+
+  fontZoom(e) {
+
+    this.globalObjects.fontSize = this.fontRange;
+    this.globalObjects.increFont();
+    this.cdr.detectChanges();
+
+  }
+
+
+  resetFont() {
+    this.fontRange = 0.9;
+  }
+
+}
+// this.globalObjects.inappBrowser("https://play.google.com/store/apps/details?id=com.lhs.lhsapperp&hl=en&pli=1")
+
+
+
+
+
+

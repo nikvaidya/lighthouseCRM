@@ -1,0 +1,184 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+// import { SingleSelectLovPage } from 'src/app/pages/single-select-lov/single-select-lov.page';
+// import { OverlayEventDetail } from '@ionic/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { DataService } from 'src/app/services/data.service';
+import { PouchDBService } from 'src/app/services/pouch-db.service';
+
+@Component({
+  selector: 'app-select-input',
+  templateUrl: './select-input.component.html',
+  styleUrls: ['./select-input.component.scss'],
+})
+export class SelectInputComponent implements OnInit {
+  @Input() selectinput: any;
+  @Input() l_wscp: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+
+  item_sub_type = '';
+  current_page_parameter: any = {};
+
+  searchText: any;
+  //selectinput: any;
+  object_arr: any = [];
+  Object_code: any = [];
+  objectList: any = [];
+  userDetails: any;
+  wscp: any = {};
+  wsdp: any = [];
+  keyList = [];
+  valuesList = [];
+
+
+  constructor(public modalCtrl: ModalController, private pouchDBService: PouchDBService,
+    private globalObjects: GlobalObjectsService, private dataService: DataService) {
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+  }
+
+  ngOnInit() {
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    this.getdata();
+    console.log("select input...>>", this.selectinput)
+  }
+
+
+  getdata() {
+    this.globalObjects.showLoading();
+    this.wscp.service_type = "get_lov_data";
+    this.wscp.apps_page_no = this.selectinput.apps_page_no;
+    this.wscp.apps_page_frame_seqid = this.selectinput.apps_page_frame_seqid;
+    this.wscp.apps_item_seqid = this.selectinput.apps_item_seqid;
+    this.userDetails = this.globalObjects.getLocallData("userDetails");
+    this.userDetails["object_code"] = this.selectinput.object_code;
+    let reqData: any = {};
+    reqData = {
+      "wslp": this.userDetails,
+      "wscp": this.wscp,
+      "wsdp": this.wsdp
+
+    }
+    reqData.wsdp = [
+      {
+        "itemType": "TEXT",
+        "itemDefaultValue": "Y~Yes#N~No"
+      }];
+
+    if (!this.globalObjects.networkStatus) {
+      let objectKey = this.userDetails.object_code + "_DD_" + this.wscp.apps_item_seqid;
+      if (this.userDetails.object_code && this.l_wscp.apps_working_mode == 'I') {
+        this.pouchDBService.getObject(objectKey).then(resData => {
+          let objData: any = resData;
+          this.objectList = objData.Level1;
+          this.Object_code = objData.Level1;
+
+          for (let x of this.Object_code) {
+            let datavalue: any = {};
+            let data1: any = [];
+            for (let data in x) {
+              let c = [];
+              if (data != "Level2") {
+                c = x[data];
+                data1.push(c);
+                datavalue.val = (data1[0]);
+                datavalue.key = (data1[1]);
+              }
+            }
+            this.valuesList.push(datavalue);
+            console.log("datavalue.................", datavalue)
+          }
+          this.selectinput['dropdownList'] = this.valuesList;
+        })
+      }
+    }
+    else {
+      this.dataService.postData("S2U", reqData).then(res => {
+        this.globalObjects.hideLoading();
+        let data: any = res;
+        console.log("res...>>>>", res)
+        if (data.responseStatus == "success") {
+          this.object_arr = data.responseData
+          let objData = this.globalObjects.setPageInfo(data.responseData);
+          this.objectList = objData.Level1;
+          this.Object_code = objData.Level1;
+
+          //-------------------OFFLINE DROPDOWN SAVE ---------------------------------------------------//
+          let offlineObjectCode: any;
+          if (objData && this.l_wscp.apps_working_mode == 'I') {
+            if (reqData.wslp) {
+              if (reqData.wslp.object_code) {
+                offlineObjectCode = reqData.wslp.object_code + "_DD_" + reqData.wscp.apps_item_seqid;
+              }
+            }
+            let pouchObjectKey = offlineObjectCode;
+            objData._id = pouchObjectKey;
+            objData._rev = "";
+            var temp: any = {};
+            var id = pouchObjectKey;
+            this.pouchDBService.getObject(id).then((localData: any) => {
+              temp = localData;
+              temp._id = id;
+              this.pouchDBService.updateJSON(temp);
+            }, (err) => {
+              objData._id = pouchObjectKey;
+              objData._rev = "";
+              this.pouchDBService.updateJSON(objData);
+            })
+          }
+
+          //-------------------OFFLINE DROPDOWN SAVE ---------------------------------------------------//
+
+          for (let x of this.Object_code) {
+            let datavalue: any = {};
+            let data1: any = [];
+            for (let data in x) {
+              let c = [];
+              if (data != "Level2") {
+                c = x[data];
+                data1.push(c);
+                datavalue.val = (data1[0]);
+                datavalue.key = (data1[1]);
+
+              }
+            }
+            this.valuesList.push(datavalue);
+            console.log("datavalue.................", datavalue)
+          }
+          this.selectinput['dropdownList'] = this.valuesList;
+        } else {
+          if (this.selectinput['item_type'] == 'DD' && this.selectinput['item_default_value']) {
+            if (this.selectinput['item_default_value'].indexOf('#') > -1) {
+              let dropVal: any = [];
+              dropVal = this.selectinput['item_default_value'].split('#');
+              // alert(dropVal)
+              let dropdownList = [];
+              for (let y of dropVal) {
+                let c = y.split("~");
+                let dVal: any = {};
+                dVal.key = c[0];
+                dVal.val = c[1];
+                console.log(dVal);
+                dropdownList.push(dVal);
+                this.selectinput['dropdownList'] = dropdownList;
+              }
+              console.log("dropval--->" + JSON.stringify(dropdownList));
+            }
+          }
+        }
+
+      }).catch(err => {
+        this.globalObjects.hideLoading();
+        this.globalObjects.presentToast("44 Something went wrong please try again later!");
+
+      })
+    }
+
+  }
+
+
+  onChange(onChange) {
+    this.emitOnChange.emit(this.selectinput)
+  }
+
+}
+

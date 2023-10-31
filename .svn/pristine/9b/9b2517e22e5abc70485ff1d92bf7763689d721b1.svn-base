@@ -1,0 +1,174 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { DatePicker } from '@ionic-native/date-picker/ngx';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { DataService } from 'src/app/services/data.service';
+
+@Component({
+  selector: 'app-date-filter-input',
+  templateUrl: './date-filter-input.component.html',
+  styleUrls: ['./date-filter-input.component.scss'],
+})
+export class DateFilterInputComponent implements OnInit {
+  @Input() dateinput: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+  current_page_parameter: any = {};
+  selectdate: any = "7";
+  dropdownvalue: any;
+  platformValue: any;
+  dropdownList: any = [];
+  ddDataList: any = [];
+
+
+
+  constructor(public datepipe: DatePipe, private dataService: DataService,
+    private datePicker: DatePicker, public globalservice: GlobalObjectsService) { }
+
+  ngOnInit() {
+    console.log("dateinput", this.dateinput)
+    this.current_page_parameter = this.globalservice.current_page_parameter;
+    // this.dropdownList = [
+    //   { value: "7", name: "Custom date" },
+    //   { value: "1", name: "Current Day" },
+    //   { value: "2", name: "Yesterday Date" },
+    //   { value: "3", name: "Current Week" },
+    //   { value: "4", name: "Current Month" },
+    //   { value: "5", name: "Current Quater" },
+    //   { value: "6", name: "Current Year" }
+    // ];
+
+
+    this.dateinput.dateType = "=";
+    this.platformValue = this.globalservice.getLocallData('platformValue');
+    if(!this.platformValue){
+      this.platformValue="browser"
+    }
+
+    this.getDateFilterParam();
+  }
+  
+  onChange(onChange) {
+      this.emitOnChange.emit(this.dateinput)
+  }
+
+
+  codeSelected() {
+    this.dateinput.from_date = this.getDateData(this.selectdate, "FROM_DATE");
+    this.dateinput.to_date = this.getDateData(this.selectdate, "TO_DATE");
+    this.dateinput.filter_type = this.selectdate;
+    console.log(" FromDateInput ",this.dateinput.from_date + "ToDateInput",+this.dateinput.to_date);
+  }
+
+  openfromdate() {
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+      if (this.selectdate == 7) {
+        this.dateinput.from_date = null;
+        this.datePicker.show({
+          date: new Date(),
+          mode: 'date',
+          androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
+        }).then(
+          date => {
+            this.dateinput.value = "";
+            var dateVal = "";
+            var frmDate = "";
+            dateVal = this.globalservice.formatDate(date, 'dd-MMM-yyyy');
+            this.dateinput.from_date = dateVal;
+            this.dateinput.value = dateVal;
+          },
+          err => console.log('Error occurred while getting datetime: ', err)
+        );
+
+      }
+    }
+  }
+
+  opentodate() {
+
+    if (this.dateinput.item_enable_flag && (!(this.dateinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.dateinput.item_enable_flag == 'F'))) {
+      if (this.selectdate == 7) {
+      this.dateinput.to_date = null;
+      this.datePicker.show({
+        date: new Date(),
+        mode: 'date',
+        androidTheme: this.datePicker.ANDROID_THEMES.THEME_HOLO_DARK
+      }).then(
+        date => {
+          this.dateinput.value = "";
+          var dateVal = "";
+          dateVal = this.globalservice.formatDate(date, 'dd-MMM-yyyy');
+          this.dateinput.value = dateVal;
+          this.dateinput.to_date = dateVal;
+
+        },
+        err => console.log('Error occurred while getting datetime: ', err)
+      );
+      }
+    }
+
+  }
+
+  dateChanged(value) {
+    if (value) {
+      this.dateinput.value = this.globalservice.formatDate(value, 'dd-MMM-yyyy');
+    } else {
+      this.dateinput.value = null;
+    }
+
+  }
+
+  toDateChanged(temp_date) {
+    if (temp_date) {
+      this.dateinput.to_date = this.globalservice.formatDate(temp_date, 'dd-MMM-yyyy');
+    } else {
+      this.dateinput.to_date = null;
+    }
+  }
+
+  fromDateChanged(temp_date) {
+    if (temp_date) {
+      this.dateinput.from_date = this.globalservice.formatDate(temp_date, 'dd-MMM-yyyy');
+    } else {
+      this.dateinput.from_date = null;
+    }
+  }
+
+  getDateFilterParam() {
+    let url = "getDateFilterParam";
+    this.dataService.getData(url).then(res => {
+      console.log(res);
+      let ddLList = [];
+      let data: any = res;
+      this.ddDataList = data.responseData;
+      let dropdownData = data.responseData;
+      if (dropdownData.length > 0) {
+        for (let d of dropdownData) {
+          let dd: any = {};
+          dd.value = d.SEQ;
+          dd.name = d.PERIOD_TYPE;
+          ddLList.push(dd);
+        }
+        this.dropdownList = ddLList;
+      }
+    })
+  }
+
+  getDateData(key, mode) {
+    if (key) {
+      if (this.ddDataList.length > 0) {
+        for (let d of this.ddDataList) {
+          if (d.SEQ == key) {
+            if (mode == 'FROM_DATE') {
+              return d.FROM_DATE;
+            }
+            if (mode == 'TO_DATE') {
+              return d.TO_DATE;
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+}

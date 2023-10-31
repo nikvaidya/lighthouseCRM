@@ -1,0 +1,101 @@
+<ion-toolbar color="primary">
+    <ion-buttons slot="start" (click)="closeLov()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+    </ion-buttons>
+    <ion-title>
+        {{prompt_name}}
+    </ion-title>
+
+    <ion-buttons fill="outline" class="toolbar-text-btn" slot="end" *ngIf="lovinput.item_sub_type=='M'"
+        (click)="setmultiLOVvalue(objectList)">
+        Ok
+    </ion-buttons>
+</ion-toolbar>
+
+<ion-content class="page-single-select-lov" padding>
+    <div class="input-group non-lov-input-group">
+
+        <ion-input type="text" placeholder="Search" [(ngModel)]="searchText" class="input-text lov-input"></ion-input>
+        <div class="input-group-append">
+                <button class="lov-btn" ion-button icon-only small (click)="openMike()">
+                  <img src="./assets/imgs/google-speaker.png">
+                </button>
+              </div>
+              <div class="input-group-append">
+                <button class="lov-btn" ion-button icon-only small>
+                  <ion-icon name="qr-scanner" (click)="openbarcodescanner()"></ion-icon>
+                </button>
+              </div>
+
+
+
+        <div class="input-group-append" *ngIf="searchText">
+            <button class="lov-btn border-left-0 border-right-0"ion-button icon-only small (click)="searchText=''">
+                <ion-icon name="close"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+
+    <div class="table-responsive" *ngIf="lovinput.item_sub_type=='M'; else elsetag">
+
+        <table>
+            <thead>
+                <tr>
+                    <!-- <th class="check-outer paddingOuter" colspan="3">
+                        <ion-item class=" ionMultipleSelect">
+                            <ion-checkbox color="secondary" [(ngModel)]="SelAll" (click)="SelectAll()"></ion-checkbox>
+                            <ion-label>Select All</ion-label>
+                        </ion-item>
+                    </th> -->
+                </tr>
+                <tr>
+                    <th><ion-checkbox color="secondary" [(ngModel)]="SelAll" (click)="SelectAll()"></ion-checkbox></th>
+                    <th *ngFor="let key of keyList" class="check-outer paddingOuter">
+                      
+                          {{key}}
+                      
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let object of objectList  | searchfilter : searchText"     (click)="object.isChecked=!object.isChecked">
+                    <td>
+                        <ion-checkbox color="secondary" [(ngModel)]="object.checked"></ion-checkbox>
+                    </td>
+                    <td *ngFor="let key of keyList " class="check-outer paddingOuter">
+                         {{ object[key] }}
+                     
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <ng-template #elsetag>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th *ngFor="let key of keyList">
+                            {{key}}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let object of objectList | searchfilter : searchText" (click)='setLOVValues(object)'>
+                        <td *ngFor="let key of keyList " class="label-outer">
+                            {{object[key]}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </ng-template>
+<div class="center" *ngIf="!objectList">
+    <div class="text-center">
+        <img src = "../../../assets/dot.gif" width="20%">
+    </div>
+</div>
+
+</ion-content>
+

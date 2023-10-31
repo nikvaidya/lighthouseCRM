@@ -1,0 +1,20 @@
+
+<ion-card class="cart-summary-plain">
+  <ion-card-title>Cart Details</ion-card-title>
+<ion-item class="summary-item-blue" lines="none">
+ 
+   <ion-label>Total Amount</ion-label>
+  <ion-note slot="end" >{{totalAmt}}</ion-note>
+</ion-item>
+<ion-item class="summary-item-blue" lines="none">
+ 
+  <ion-label>Total Quantity</ion-label>
+ <ion-note slot="end" >{{totalQty}}</ion-note>
+</ion-item>
+<ion-item class="summary-item-blue" lines="none">
+ 
+  <ion-label>Total Item</ion-label>
+ <ion-note slot="end" >{{tableRows.length}}</ion-note>
+</ion-item>
+</ion-card>
+<!-- <ion-button size="block" stye="margin:0px 10px;" (click) = "itemClicked($event)">Place Order</ion-button> -->

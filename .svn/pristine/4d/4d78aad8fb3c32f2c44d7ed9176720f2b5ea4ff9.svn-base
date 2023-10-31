@@ -1,0 +1,62 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { DataService } from 'src/app/services/data.service';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+
+
+@Component({
+  selector: 'app-item-image',
+  templateUrl: './item-image.component.html',
+  styleUrls: ['./item-image.component.scss'],
+})
+export class ItemImageComponent implements OnInit {
+
+  @Input() displayPhoto: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  imgData: any;
+  @Input() styleCss: any
+
+  constructor(private dataService: DataService, private globalservice: GlobalObjectsService) { }
+
+  ngOnInit() {
+    if(this.displayPhoto.value){
+      this.showItemImage(this.displayPhoto);
+    }
+  
+   
+  }
+
+  showItemImage(displayPhoto) {
+    console.log("this is item image", this.displayPhoto)
+    if (displayPhoto) {
+      let url = 'getItemImage?query=' + encodeURIComponent(displayPhoto.value);
+      if (displayPhoto.value) {
+        this.dataService.getData(url)
+          .then(res => {
+            console.log(res);
+            var data: any = res;
+
+            if (data.status == 'success') {
+              this.imgData = 'data:image/png;base64,' + data.img;
+            } else {
+              this.imgData = '/assets/imgs/no_image.png';
+            }
+          }, err => {
+            console.log("ImgDataErr " + JSON.stringify(err));
+            this.imgData = null;
+          })
+      }
+    }
+
+
+  }
+
+  photoview() {
+    this.globalservice.viewPhoto(this.imgData);
+  }
+
+
+
+}
+
+

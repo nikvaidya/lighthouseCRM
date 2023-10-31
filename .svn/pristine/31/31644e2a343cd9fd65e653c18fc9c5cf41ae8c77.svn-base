@@ -1,0 +1,85 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { ModalPage } from 'src/app/pages/modal/modal';
+import { OverlayEventDetail } from '@ionic/core';
+import { DataService } from '../../../../services/data.service';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+// import { DocumentScanner, DocumentScannerOptions } from '@ionic-native/document-scanner/ngx';
+
+@Component({
+  selector: 'app-image-input',
+  templateUrl: './image-input.component.html',
+  styleUrls: ['./image-input.component.scss'],
+})
+export class ImageInputComponent implements OnInit {
+  @Input() imageinput: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+  current_page_parameter: any = {};
+  imgData: any;
+  constructor(public modalCtrl: ModalController, public dataService: DataService,private globalObjects: GlobalObjectsService) { }
+  // private docScan: DocumentScanner
+  ngOnInit() {
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    console.log('this.imageinput ', this.imageinput);
+  }
+  onChange(onChange) {
+      this.emitOnChange.emit(this.imageinput)
+  }
+
+  takeImage(itemDbName, flag) {
+    this.dataService.takePhoto(itemDbName, flag).then((imageData) => {
+      this.imageinput.value = imageData;
+    })
+  }
+
+  clearImage() {
+    this.imageinput.value = '';
+  }
+
+  drawClear() {
+    this.imageinput.value = '';
+  }
+
+  async opensignaturePad() {
+    var data = { message: 'hello world' };
+    const modal: HTMLIonModalElement =
+      await this.modalCtrl.create({
+        component: ModalPage,
+        componentProps: { values: data }
+      });
+    modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+      if (detail) {
+        //console.log('The result:', detail.data);
+        this.imageinput.value = detail.data.replace("data:image/png;base64,", "");
+      }
+    });
+    await modal.present();
+  }
+
+  photoview(){
+    this.imgData = 'data:image/png;base64,' + this.imageinput.value;
+    this.globalObjects.viewPhoto(this.imgData);
+  }
+
+
+  scanDoc() {
+    
+    // let opts: DocumentScannerOptions = {
+    //   quality: 2.2,
+    //   returnBase64: true,
+    //   sourceType: 1
+    // };
+    // this.docScan.scanDoc(opts)
+    //   .then((res: string) => {
+    //     this.imageinput.value = res;
+    //   })
+    //   .catch((error: any) => {
+    //     console.error(error);
+    //     alert(error);
+    //   });
+
+  }
+
+
+
+}

@@ -1,0 +1,281 @@
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Router } from '@angular/router';
+import { AngularFireStorage } from '@angular/fire/storage';
+import * as firebase from 'firebase/app';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { AlertController } from '@ionic/angular';
+import * as JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+
+@Component({
+  selector: 'app-image-uploader',
+  templateUrl: './image-uploader.page.html',
+  styleUrls: ['./image-uploader.page.scss'],
+})
+export class ImageUploaderPage implements OnInit {
+  @ViewChild("fileBlue") fileBlue: ElementRef;
+  @ViewChild("fileDark") fileDark: ElementRef;
+  @ViewChild("fileMaroon") fileMaroon: ElementRef;
+  @ViewChild("fileGrey") fileGrey: ElementRef;
+  @ViewChild("fileGreen") fileGreen: ElementRef;
+  displayBlue: any;
+  displayDark: any;
+  displayMaroon: any;
+  displayGrey: any;
+  displayGreen: any;
+
+  searchText: string;
+  storedImages: any = [];
+  storedImagesSearch: any = [];
+  hide: boolean = true;
+  storageRef = ["theme-blue", "theme-green", "theme-dark", "theme-maroon", "theme-grey"];
+  title = ["Theme Blue", "Theme Green", "Theme Dark", "Theme Maroon", "Theme Grey"];
+
+  downloadImages: any = [];
+  downloadStatus: boolean = false;
+  downloadItem = '';
+
+  constructor(private router: Router, private storage: AngularFireStorage, private globlalobject: GlobalObjectsService, private alertController: AlertController) { }
+
+  ngOnInit() {
+    this.getFileList();
+  }
+
+  toggleUpload() {
+    this.hide = !this.hide;
+  }
+
+  selectFile(theme, file) {
+    this.getBase64(file).then((data) => {
+      if (theme == 'blue') {
+        this.displayBlue = data;
+      } else if (theme == 'dark') {
+        this.displayDark = data;
+      } else if (theme == 'maroon') {
+        this.displayMaroon = data;
+      } else if (theme == 'grey') {
+        this.displayGrey = data;
+      } else if (theme == 'green') {
+        this.displayGreen = data;
+      }
+    });
+  }
+
+  getBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  closePage() {
+    this.router.navigate(['super']);
+  }
+
+  async uploadFiles() {
+
+    this.fileBlue.nativeElement.files[0] ? this.uploadToFirebase('theme-blue', this.fileBlue.nativeElement.files[0]) : '';
+    this.fileGreen.nativeElement.files[0] ? this.uploadToFirebase('theme-green', this.fileGreen.nativeElement.files[0]) : '';
+    this.fileDark.nativeElement.files[0] ? this.uploadToFirebase('theme-dark', this.fileDark.nativeElement.files[0]) : '';
+    this.fileMaroon.nativeElement.files[0] ? this.uploadToFirebase('theme-maroon', this.fileMaroon.nativeElement.files[0]) : '';
+    this.fileGrey.nativeElement.files[0] ? this.uploadToFirebase('theme-grey', this.fileGrey.nativeElement.files[0]) : '';
+
+    //console.log(this.fileBlue);
+    this.fileBlue.nativeElement.files[0] ? this.fileBlue.nativeElement.value = "" : '';
+    this.fileGreen.nativeElement.files[0] ? this.fileGreen.nativeElement.value = '' : '';
+    this.fileDark.nativeElement.files[0] ? this.fileDark.nativeElement.value = '' : '';
+    this.fileMaroon.nativeElement.files[0] ? this.fileMaroon.nativeElement.value = '' : '';
+    this.fileGrey.nativeElement.files[0] ? this.fileGrey.nativeElement.value = '' : '';
+    this.displayBlue = '';
+    this.displayDark = '';
+    this.displayMaroon = '';
+    this.displayGrey = '';
+    this.displayGreen = '';
+
+  }
+
+  async uploadToFirebase(dir, file) {
+    if (this.storedImagesSearch.indexOf(file.name) > -1) {
+      const alert = await this.alertController.create({
+
+        header: 'Replace existing file!',
+        message: 'File with the ' + file.name + ' already exist, do you want to continue?',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: (blah) => {
+              console.log('Confirm Cancel: blah');
+            }
+          }, {
+            text: 'Continue',
+            handler: () => {
+              const path = dir + '/' + file.name
+              const uploadTask = this.storage.upload(
+                path,
+                file
+              );
+
+              uploadTask.then(async res => {
+                if (this.storedImages.indexOf(file.name) == -1) {
+                  this.storedImages.unshift(file.name);
+                  this.storedImagesSearch.unshift(file.name);
+                  let index = this.storageRef.indexOf(dir);
+                  if (this.downloadImages[index].indexOf(file.name) == -1) {
+                    this.downloadImages[index].push(file.name);
+                  }
+                } else {
+                  this.getFileList();
+                }
+                this.globlalobject.displayCordovaToast("File uploaded successfuly...");
+              });
+            }
+          }
+        ]
+      });
+
+      await alert.present();
+    } else {
+      const path = dir + '/' + file.name
+      const uploadTask = this.storage.upload(
+        path,
+        file
+      );
+
+      uploadTask.then(async res => {
+        this.storedImages.unshift(file.name);
+        this.storedImagesSearch.unshift(file.name);
+        this.globlalobject.displayCordovaToast("File uploaded successfuly...");
+        //this.getFileList();
+      });
+
+      // uploadTask.percentageChanges().subscribe(change => {
+      //   //this.uploadProgress = change;
+      // });
+    }
+  }
+
+  getFileList() {
+    this.storedImages = [];
+    this.storedImagesSearch = [];
+    for (let i = 0; i < this.storageRef.length; i++) {
+      let imageName = [];
+      const storageRef = firebase.storage().ref(this.storageRef[i]);
+      storageRef.listAll().then(result => {
+        console.log("List: ", result);
+        result.items.forEach(ref => {
+          // images.push({
+          //   name: ref.name,
+          //   full: ref.fullPath,
+          //   url: await ref.getDownloadURL(),
+          //   ref: ref
+          // });
+          // images.push(ref.name);
+          imageName.push(ref.name);
+          if (this.storedImages.indexOf(ref.name) == -1) {
+            this.storedImages.push(ref.name);
+            this.storedImagesSearch.push(ref.name);
+          }
+        });
+      });
+      this.downloadImages.push(imageName);
+    }
+    console.log("Images:", this.downloadImages);
+  }
+
+  filterTable() {
+    this.storedImages = this.storedImagesSearch.filter((item: any) => {
+      if (item.toLowerCase().includes(this.searchText.toLowerCase())) {
+        return item;
+      }
+    })
+  }
+
+  deleteFile(ref) {
+    let index = this.downloadImages[this.storageRef.indexOf(ref.split('/')[0])].indexOf(ref.split('/')[1]);
+    if (index > -1) {
+      this.downloadImages[this.storageRef.indexOf(ref.split('/')[0])].splice(index, 1);
+    }
+    this.storage.ref(ref).delete();
+    this.globlalobject.displayCordovaToast("File deleted successfuly...");
+  }
+
+  async  backupAllImages() {
+    const alert = await this.alertController.create({
+
+      header: 'Backup All Images',
+      message: 'Please continue to backup...',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: ' ',
+          cssClass: 'secondary',
+          handler: (blah) => {
+            console.log('Confirm Cancel: blah');
+          }
+        }, {
+          text: 'Continue',
+          handler: () => {
+            this.downloadZip();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async downloadZip() {
+    for (let i = 0; i < this.storageRef.length; i++) {
+      this.downloadItem = this.storageRef[i];
+      const jszip = new JSZip();
+      for (let j = 0; j < this.downloadImages[i].length; j++) {
+        this.downloadStatus = true;
+        let imageUrl = "https://firebasestorage.googleapis.com/v0/b/lhswma-image-icon-mast.appspot.com/o/" + this.storageRef[i] + "%2F" + this.downloadImages[i][j] + "?alt=media";
+        var res = await fetch(imageUrl);
+        let blob = await res.blob();
+        jszip.file(this.downloadImages[i][j], blob);
+        if (j === (this.downloadImages[i].length - 1)) {
+          let fileName = this.storageRef[i] + '.zip';
+          jszip.generateAsync({ type: 'blob' }).then(function (content) {
+            saveAs(content, fileName);
+            this.downloadStatus = false;
+          });
+        }
+      }
+    }
+  }
+
+  /*getBase64ImageFromURL(url: string) {
+    return Observable.create((observer: Observer<string>) => {
+      let img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = url;
+      if (!img.complete) {
+        img.onload = () => {
+          observer.next(this.getBase64Image(img));
+          observer.complete();
+        };
+        img.onerror = (err) => {
+          observer.error(err);
+        };
+      } else {
+        observer.next(this.getBase64Image(img));
+        observer.complete();
+      }
+    });
+  }
+
+  getBase64Image(img: HTMLImageElement) {
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    var dataURL = canvas.toDataURL("image/png");
+    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+  }*/
+}

@@ -1,0 +1,67 @@
+
+<div class="select-container" *ngIf="selectinput.item_sub_type == 'M'">
+<ion-item class="{{selectinput.css_class}}">
+    <ion-label position="{{selectinput.position}}">{{selectinput.prompt_name}}</ion-label>
+    <ion-select multiple id="id" name="selectinput.column_name" [(ngModel)]="selectinput.value" interface="popover"
+    [required]="(current_page_parameter.MODE && (selectinput.data_required_flag && 
+  (selectinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+  ||selectinput.data_required_flag=='T' 
+  ||selectinput.prompt_name[selectinput.prompt_name.length -1] =='*'"
+    (ionChange)="onChange('ionChange');selectinput.isValid=selectinputName.valid"
+    (ngInit)="selectinput.isValid=selectinputName.valid" #selectinputName='ngModel'>
+    <ion-select-option *ngFor="let c of selectinput.dropdownList" value="{{c.val}}"> {{c.key}} </ion-select-option>
+  </ion-select>
+
+  
+
+
+  </ion-item>
+  <div class="error" *ngIf="selectinputName.hasError('required') && selectinput.touched"> Please Enter
+      {{selectinput.prompt_name}}
+    </div>
+</div>
+
+
+<div class="select-container" *ngIf="selectinput.item_sub_type != 'M'">
+    <ion-item class="{{selectinput.css_class}}">
+        <ion-label position="{{selectinput.position}}">{{selectinput.prompt_name}}</ion-label>
+        <ion-select id="id" name="selectinput.column_name" [(ngModel)]="selectinput.value" interface="popover" [required]="(current_page_parameter.MODE && (selectinput.data_required_flag && 
+        (selectinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||selectinput.data_required_flag=='T' 
+        ||selectinput.prompt_name[selectinput.prompt_name.length -1] =='*'"
+          (ionChange)="onChange('ionChange');selectinput.isValid=selectinputName.valid"
+          (ionBlur)="selectinput.isValid=selectinputName.valid" (ngInit)="selectinput.isValid=selectinputName.valid"
+          #selectinputName='ngModel'>
+          <ion-select-option></ion-select-option>
+          <ion-select-option *ngFor="let c of selectinput.dropdownList" value="{{c.val}}"> {{c.key}} </ion-select-option>
+        </ion-select>
+      
+    
+    
+      </ion-item>
+      <div class="error" *ngIf="selectinputName.hasError('required') && selectinput.touched"> Please Enter
+          {{selectinput.prompt_name}}
+        </div>
+    
+    </div>
+
+
+
+    
+    <div class="table-input-container" style="display:none;" *ngIf="selectinput.item_sub_type == 'S_T'">
+        <ion-select class="table-input" interface="popover" id="id" name="selectinput.column_name" [(ngModel)]="selectinput.value" interface="popover" [required]="(current_page_parameter.MODE && (selectinput.data_required_flag && 
+        (selectinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||selectinput.data_required_flag=='T' 
+        ||selectinput.prompt_name[selectinput.prompt_name.length -1] =='*'"
+          (ionChange)="onChange('ionChange');selectinput.isValid=selectinputName.valid"
+          (ionBlur)="selectinput.isValid=selectinputName.valid" (ngInit)="selectinput.isValid=selectinputName.valid"
+          #selectinputName='ngModel'>
+          <ion-select-option *ngFor="let c of selectinput.dropdownList" value="{{c.val}}"> {{c.key}} </ion-select-option>
+          <!-- <ion-select-option value="cat">Cat</ion-select-option>
+          <ion-select-option value="dog">Dog</ion-select-option> -->
+        </ion-select>
+
+        <div class="error" *ngIf="selectinputName.hasError('required') && selectinput.touched"> Please Enter
+          {{selectinput.prompt_name}}
+        </div>
+      </div>

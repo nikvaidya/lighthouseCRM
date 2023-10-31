@@ -1,0 +1,32 @@
+<div class="capture-img-container">
+  <ion-label class="form-label">Image Input Circle</ion-label>
+  <div class="text-center">
+    <img src="assets/imgs/default-thumbnail.jpg" class="img-input-circle">
+  </div>
+</div>
+<div class="mb-2 text-center">
+    <ion-grid class="p-0">
+        <ion-row>
+  <div  class="img-capture-sec-container m-auto">
+    
+      <ion-col col-12 class="p-0" >
+          <div class="img-capture-sec d-inline-block">
+              <button ion-button small>
+                <ion-icon name="md-create"></ion-icon>
+              </button>
+            </div>
+            <div class="img-capture-sec d-inline-block">
+                <button ion-button small>
+                  <ion-icon name="md-images"></ion-icon>
+                </button>
+              </div>
+            <div class="img-capture-sec trash-btn-sec d-inline-block">
+                <button ion-button small>
+                  <ion-icon name="trash"></ion-icon>
+                </button>
+              </div>
+        </ion-col>
+          </div>
+  </ion-row>
+  </ion-grid>
+</div>

@@ -1,0 +1,15 @@
+<ion-header>
+    <ion-toolbar color="primary">
+        <!-- <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+          </ion-buttons> -->
+          <ion-button slot="start" (click)="closePage()" fill="clear" icon-only start>
+            <ion-icon name="arrow-back" color="light"></ion-icon>
+          </ion-button>
+      <ion-title class="title">Image Uploader</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+<ion-content>
+
+</ion-content>

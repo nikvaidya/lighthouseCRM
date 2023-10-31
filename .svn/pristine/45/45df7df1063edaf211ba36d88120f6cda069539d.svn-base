@@ -1,0 +1,35 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-button',
+  templateUrl: './button.component.html',
+  styleUrls: ['./button.component.scss'],
+})
+export class ButtonComponent implements OnInit {
+  @Input() button: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  @Output() emitClear: EventEmitter<any> = new EventEmitter<any>();
+  click_events_str_arr = [];
+  secondstring: any;
+  constructor(private globalobjects:GlobalObjectsService) { }
+
+  ngOnInit() { 
+   
+
+  }
+  ngAfterContentChecked(){
+    this.globalobjects.clickedbutton = false;
+  }
+  buttonClick(event) {
+    
+    this.emitPass.emit(this.button);
+    this.globalobjects.clickedbutton = true;
+
+  }
+
+  buttonClickClear() {
+    // console.log("buttonClickClear");
+    this.emitClear.emit(this.button);
+  }
+}

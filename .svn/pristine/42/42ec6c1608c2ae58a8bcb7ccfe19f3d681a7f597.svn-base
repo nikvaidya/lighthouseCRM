@@ -1,0 +1,11 @@
+    <!-- <ion-icon class="edit-photo" name="camera"></ion-icon> -->
+  <ion-avatar slot="start" class="rounded-0" *ngIf="displayPhoto.item_sub_type!='ROUND'"  (click)="photoview()" [ngStyle]="styleCss">
+    <!-- <img src="/assets/imgs/no_image.png" *ngIf="!imgData"> -->
+    <img [src]="imgData"   *ngIf="imgData">
+  </ion-avatar>
+  <ion-avatar slot="start" *ngIf="displayPhoto.item_sub_type=='ROUND'" class="rounded-circle"   (click)="photoview()" [ngStyle]="styleCss">
+    <!-- <img src="/assets/imgs/no_image.png" *ngIf="!imgData"> -->
+    <img [src]="imgData"  *ngIf="imgData">
+  </ion-avatar>
+
+ 

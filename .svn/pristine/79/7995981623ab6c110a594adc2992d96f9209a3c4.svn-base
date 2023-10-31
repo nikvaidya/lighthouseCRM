@@ -1,0 +1,137 @@
+import { Component, OnInit, Input, Inject, forwardRef, ViewContainerRef, Output, EventEmitter } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { SingleSelectLovPage } from 'src/app/pages/single-select-lov/single-select-lov.page';
+import { OverlayEventDetail } from '@ionic/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-lov-input',
+  templateUrl: './lov-input.component.html',
+  styleUrls: ['./lov-input.component.scss'],
+})
+export class LOVInputComponent implements OnInit {
+  @Input() lovinput: any;
+  @Input() wscp: any;
+  @Input() parentComponent: any;
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+  current_page_parameter: any = {};
+  constructor(public modalCtrl: ModalController, private viewContainerRef: ViewContainerRef, private globalObjects: GlobalObjectsService) { }
+
+  // constructor(public modalCtrl: ModalController,@Inject(forwardRef(() => ParentComponent)) private _parent:ParentComponent) {
+  //   console.log(_parent);
+  // }
+
+
+  getParentComponent() {
+
+    // console.log(this.parentComponent);
+  }
+
+
+  ngOnInit() {
+    console.log("this is lov input", this.lovinput);
+    console.log("this is lov parentcompo", this.parentComponent);
+    this.current_page_parameter = this.globalObjects.current_page_parameter;
+    this.getParentComponent();
+    console.log("this.lovinput", this.lovinput)
+  }
+
+  async openLov() {
+    let rowindex ;
+    var data = { message: 'hello world' };
+    // if (this.lovinput.item_enable_flag == '') {
+    if (this.lovinput.item_enable_flag && (!(this.lovinput.item_enable_flag.indexOf(this.current_page_parameter.MODE) > -1) || (this.lovinput.item_enable_flag == 'F'))) {
+      return false;
+    } else {
+      let wsdp = [];
+      let col = {};
+      if(this.lovinput.indexcount){
+        rowindex = this.lovinput.indexcount;
+      }else{
+        rowindex = 0;
+      }
+      if (this.parentComponent.frame.tableRows) {
+        for (let itemGroup of this.parentComponent.frame.tableRows[rowindex]) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.codeOfValues) {
+                col[item.apps_item_seqid] = item.codeOfValues
+              } else {
+                col[item.apps_item_seqid] = item.value
+              }
+            }
+          }
+        }
+      } else {
+        for (let itemGroup of this.parentComponent.frame) {
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              if (item.codeOfValues) {
+                col[item.apps_item_seqid] = item.codeOfValues
+              } else {
+                col[item.apps_item_seqid] = item.value
+              }
+            }
+          }
+        }
+      }
+      wsdp.push(col);
+      // console.log(wsdp)
+
+     let newWsdp = [];
+     newWsdp.push(Object.assign(this.parentComponent.wsdp[0], wsdp[0]));
+
+      const modal: HTMLIonModalElement =
+        await this.modalCtrl.create({
+          component: SingleSelectLovPage,
+          componentProps: { paramValue: this.lovinput, wsdp: newWsdp, prompt_name: this.lovinput.prompt_name, wscp: this.wscp }
+        });
+      modal.onDidDismiss().then((detail: OverlayEventDetail) => {
+        
+        if (detail.data) {
+            this.lovinput.codeOfValues = detail.data.codeOfValues;
+            this.lovinput.value = detail.data.value;
+            this.lovinput.item = detail.data.item;
+        }
+        else{
+          this.lovinput.codeOfValues = "";
+          this.lovinput.value = "";
+        }
+      });
+      await modal.present();
+    }
+  }
+
+
+  cleardata() {
+    this.lovinput.value = null;
+    this.lovinput.codeOfValues = null;
+  }
+
+  onChange(onChange) {
+    if(this.lovinput.lov_return_column_str){
+      
+      let lov_return_key = this.lovinput.lov_return_column_str.split("#");
+      let tablerows =  this.parentComponent.frame.tableRows;
+      for(let tabledata of tablerows){
+        for(let itemGroup of tabledata){
+          if (itemGroup.Level5) {
+            for (let item of itemGroup.Level5) {
+              for(let lovKey of lov_return_key){
+                if(lovKey.toUpperCase() == item.item_name.toUpperCase()){
+                  for(let x in this.lovinput.item){
+                    if(item.item_name.toUpperCase() == x.toUpperCase().split("~")[1]){
+                      item.value = this.lovinput.item[x]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }  
+    this.emitOnChange.emit(this.lovinput)
+  }
+
+}

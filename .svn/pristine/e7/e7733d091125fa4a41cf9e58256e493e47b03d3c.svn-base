@@ -1,0 +1,97 @@
+<!-- <div text-center>
+  <ion-button class="global-btn" shape="round" size="small" (click)="buttonClick(event)">{{button.prompt_name}}
+  </ion-button>
+</div> -->
+
+
+<div text-center *ngIf="this.button.item_sub_type == 'SIMPLE_TEXT_BUTTON'">
+  <ion-button shape="round" class="mr-1 globe-btn" [disabled]="globalobjects.clickedbutton" (click)="buttonClick(event)">
+    {{button.prompt_name}}
+  </ion-button>
+</div>
+
+<div text-center *ngIf="this.button.item_sub_type == 'BLOCK_TEXT_BUTTON'">
+    <ion-button size="block" class="mr-1 globe-btn" [disabled]="globalobjects.clickedbutton" (click)="buttonClick(event)">
+      {{button.prompt_name}}
+    </ion-button>
+  </div>
+
+<div class="icon-btn-container d-none">
+  <ion-button shape="round" class="globe-btn icon-btn" expand="block">
+    Scan QR Code <ion-icon class="ml-2" name="qr-scanner"></ion-icon>
+  </ion-button>
+</div>
+<!-- <ion-button shape="round" fill="outline" (click)="updateStatus('Approve')">Approve</ion-button> -->
+
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'ADD_BUTTON'">
+  <ion-button class="icon-btn" size="small" (click)="buttonClick(event)">
+    <ion-icon name="add-circle"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'EDIT_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="success" name="create"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'DELETE_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="danger" name="trash"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'VIEW_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="warning" name="eye"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'SAVE_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="tertiary" name="save"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'CLOSE_CIRCLE_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="medium" name="close-circle"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'NEXT_SCREEN_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="dark" name="arrow-round-forward"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container" *ngIf="this.button.item_sub_type == 'PREV_SCREEN_BUTTON'">
+  <ion-button class="icon-btn" size="small" fill="clear" (click)="buttonClick(event)">
+    <ion-icon color="dark" name="arrow-round-back"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="select-container text-center mb-1" *ngIf="this.button.item_sub_type == 'ICON_BUTTON'">
+<ion-button class="mr-1 iconText-btn" fill="outline" (click)="buttonClick(event)">
+  <!-- <ion-icon class="mr-1" name="checkmark-circle-outline"></ion-icon>{{button.prompt_name}} -->
+  <ion-icon class="mr-1" name="done-all"></ion-icon>{{button.prompt_name}}
+</ion-button>
+</div>
+
+ <!-- <div class="select-container text-center mb-1" *ngIf="this.button.item_sub_type == 'PREV_SCREEN_BUTTON'">
+  <ion-button class="iconText-btn" fill="outline">
+    <ion-icon class="mr-1" name="eye">
+    </ion-icon>Select As Read
+  </ion-button>
+ </div> -->
+<!-- <div class="select-container text-center mb-1">
+    <ion-button class="mr-1 iconText-btn" fill="outline"><ion-icon class="mr-1" name="checkmark-circle-outline"></ion-icon>Select All</ion-button>
+    <ion-button class="iconText-btn" fill="outline"><ion-icon class="mr-1" name="eye"></ion-icon>Select As Read</ion-button>    </div> -->
+
+    <!-- <div class="select-container text-center mb-1">
+      <ion-button class="mr-1 iconText-btn" fill="outline" shape="round"><ion-icon class="mr-1" 
+        name="checkmark-circle-outline"></ion-icon>Select All</ion-button>
+      <ion-button class="iconText-btn" fill="outline" shape="round"><ion-icon class="mr-1" name="eye"></ion-icon>Select As Read</ion-button> 
+  </div> -->
+  

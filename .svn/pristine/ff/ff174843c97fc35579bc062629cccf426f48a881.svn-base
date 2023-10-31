@@ -1,0 +1,78 @@
+<div *ngIf="canvasfilter">
+  <app-frame-canvas-filter [frametable]="frame" (passdataToframetable)="getdataFromcanvasFilter($event)"
+    [frame]='frame'></app-frame-canvas-filter>
+</div>
+
+<div>
+  <div class="input-group primary-search-section" *ngIf="searchFlag  && !canvasfilter && !jsFilter">
+
+    <ion-input class="input-text" placeholder="Search Here..." [(ngModel)]="tablerowsfilter"></ion-input>
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small (click)="openMike()">
+        <img src="/assets/imgs/google-speaker.png">
+      </button>
+    </div>
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small>
+        <ion-icon name="qr-scanner" (click)="openbarcodescanner()"></ion-icon>
+      </button>
+    </div>
+
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small (click)="filterToggle()">
+        <ion-icon name="ios-funnel"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+<div *ngIf="show_filter=='show' ">
+  <div *ngIf="cFilter">
+    <app-frame-filter [frame]="filterFormData" (emitFilter)="getFilterParameter($event)"></app-frame-filter>
+  </div>
+
+  <div *ngIf="jFilter">
+    <app-frame-dependent-filter [frame]='frame' (passdataToframeDepen)="getdataFromDependentFilter($event)">
+    </app-frame-dependent-filter>
+  </div>
+
+</div>
+
+<div *ngFor="let rows of frame.tableRows |tableSearch :tablerowsfilter;let j=index;">
+  <ion-item class="user-profile-card" lines="none">
+
+    <ion-row *ngFor="let itemGroup of rows; let i=index" class="p-0">
+      <ion-col class="p-0" *ngFor="let input_item of itemGroup.Level5;let i=index"
+        [hidden]="input_item.item_visible_flag!='T'">
+        <div *ngIf="input_item.item_type =='DISPLAY_PHOTO'">
+          <app-items class="p-0" [item]="input_item" (emitPass)="itemClicked($event,rows,j)"
+            (LHSOnChange)="itemValueChange($event,j)"></app-items>
+        </div>
+      </ion-col>
+    </ion-row>
+
+    <ion-label>
+      <ion-row *ngFor="let itemGroup of rows; let i=index" class="p-0">
+        <ion-col class="p-0" *ngFor="let input_item of itemGroup.Level5;let i=index"
+          [hidden]="input_item.item_visible_flag!='T'">
+          <div *ngIf="input_item.item_type!='DISPLAY_PHOTO'">
+            <app-items class="p-0" [item]="input_item" (emitPass)="itemClicked($event,rows,j)"
+              (LHSOnChange)="itemValueChange($event,j)"></app-items>
+          </div>
+
+        </ion-col>
+      </ion-row>
+      <!-- <h2>Mr. John Due</h2>
+      <h3>Lighthouse Info Systems Pvt. Ltd.</h3>
+      <p>Project Leader </p>
+      <p>
+        <ion-icon class="call-icon" name="call"></ion-icon>7721053528 
+        <span class="location"> <ion-icon class="mx-1 location-icon" name="pin">
+        </ion-icon>Nagpur</span></p> -->
+    </ion-label>
+  </ion-item>
+</div>
+<ion-infinite-scroll class="ispinner" (ionInfinite)="doInfinite($event)">
+  <ion-infinite-scroll-content *ngIf="!loadMoreFlag" loadingSpinner="bubbles" loadingColor="red"
+    loadingText="Loading more data...">
+  </ion-infinite-scroll-content>
+</ion-infinite-scroll>

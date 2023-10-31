@@ -1,0 +1,32 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+
+@Component({
+  selector: 'app-summary-card',
+  templateUrl: './summary-card.component.html',
+  styleUrls: ['./summary-card.component.scss'],
+})
+export class SummaryCardComponent implements OnInit {
+
+  @Input() summ_card_input: any;
+  @Input() frame_type: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  num:number;
+
+  constructor(public globalobject:GlobalObjectsService) { 
+    this.num= this.globalobject.countforsummarycard;
+    console.log("this.num",this.num)
+  }
+
+  ngOnInit() {
+    console.log('summ_card_input ',this.summ_card_input);
+
+  }
+
+  itemClick(event) {
+    this.emitPass.emit(this.summ_card_input);
+  }
+
+}
+
+ 

@@ -1,0 +1,54 @@
+import { Component, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { DataService } from 'src/app/services/data.service';
+import { GlobalObjectsService } from 'src/app/services/global-objects.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-forgot-password',
+  templateUrl: './forgot-password.page.html',
+  styleUrls: ['./forgot-password.page.scss'],
+})
+export class ForgotPasswordPage implements OnInit {
+  public shouldHeight: any;
+  public userCode: any;
+  userdetail: any;
+  otpSent: boolean = false;
+  otp: any;
+  usrOtp;
+  constructor(private modalCtrl: ModalController, public location: Location,private router :Router , private dataService: DataService, private globalObjects: GlobalObjectsService) {
+    this.shouldHeight = document.body.clientHeight + 'px';
+    this.userdetail = this.globalObjects.getLocallData("userDetails");
+  }
+
+  ngOnInit() {
+  }
+
+  sendOtp() {
+    //this.userdetail.user_code;
+    console.log(this.userCode)
+    // let data={
+    //   "usercode":this.userdetail.user_code
+    // }
+    this.dataService.getData("sendOTP?loginId=" + encodeURIComponent(this.userCode)).then(res => {
+
+      console.log(res);
+      let data: any = res;
+      if (data.otpStatus) {
+        this.otpSent = data.otpStatus;
+        this.otp = data.otp;
+      }
+    }).catch(e => { });
+  }
+
+  closePage() {
+    this.location.back();
+  }
+
+  verifyOtp() {
+    if (this.usrOtp == this.otp) {
+      this.router.navigate(['reset-password',this.userCode]);
+    }
+  }
+}

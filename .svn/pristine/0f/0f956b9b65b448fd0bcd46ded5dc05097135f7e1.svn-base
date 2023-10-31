@@ -1,0 +1,40 @@
+<!-- 
+<ion-button  size="small" color="medium" slot="end" (click)="clearAll()">Clear All</ion-button>
+
+
+<ion-button  size="small" color="medium" slot="end" (click)="SkipFilter()">Skip Filter</ion-button> -->
+
+
+<div class="filters">
+    <div class="filter-icon-container position-relative">
+        <ion-icon class="position-relative" name="ios-funnel"></ion-icon>
+        <h6 class="d-inline-block mt-0">Filters</h6>
+    </div>
+    <!-- <app-frame-smart-filter-container></app-frame-smart-filter-container>
+    <app-frame-smart-filter-sliding-buttons></app-frame-smart-filter-sliding-buttons>
+    <app-frame-smart-filter-range></app-frame-smart-filter-range>
+    <app-frame-smart-filter-column></app-frame-smart-filter-column>
+    <app-frame-smart-filter-checklist></app-frame-smart-filter-checklist>  -->
+    <div class="filter-body p-1">
+        <ion-grid>
+            <!-- ---------------------------------------------------- -->
+            <ion-row *ngFor="let itemGroup of itemData">
+                <ion-col *ngFor="let item of itemGroup.Level5;let i=index"[hidden]="item.item_filter_flag=='BT'">
+                    <app-items [item]="item"  [itemData]="frame.tableDependentRows" (emitfilterParam)="fiteredData($event)"></app-items>
+                </ion-col>
+            </ion-row>
+            <!-- ---------------------------------------------------- -->
+          </ion-grid>
+
+        <!-- <ion-button expand="block" (click)="filerData()" >Show Filtered Data</ion-button> -->
+        <ion-row>
+            <ion-col col-12 text-center>
+              <ion-button shape="round" class="mr-1 globe-btn" color="primary" (click)="sendData('closefilter')">Show
+              </ion-button>
+              <ion-button shape="round" color="medium globe-btn"  (click)="clearAll()">Clear</ion-button>
+            </ion-col>
+          </ion-row>
+          
+
+    </div>
+</div>

@@ -1,0 +1,158 @@
+<div class="filter-date-sec p-1" *ngIf="dateinput.item_sub_type=='BETWEEN_DATE'">
+  <ion-icon class="heading-icon" name="ios-calendar"></ion-icon>
+<!-- <ion-row>
+  <ion-col class="px-1 py-0" size="5">
+    <label>{{dateinput.prompt_name}}
+    </label>
+  </ion-col>
+  <ion-col class="px-1 py-0" size="7">
+    <div  class="select-container">
+      <ion-select id="id" name="dateselect" interface="popover" (ionChange)="codeSelected()" [(ngModel)]="selectdate">
+        <ion-select-option *ngFor="let c of dropdownList" value="{{c.value}}"> {{c.name}} </ion-select-option>
+      </ion-select>
+    </div>
+  </ion-col>
+</ion-row> -->
+<ion-item class="{{dateinput.css_class}}">
+    <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+    <ion-select  id="id" name="dateinput.column_name" [(ngModel)]="selectdate" interface="popover"
+    [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+  (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+  ||dateinput.data_required_flag=='T' 
+  ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'"
+    (ionChange)="codeSelected()"
+    (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'>
+    <ion-select-option *ngFor="let c of dropdownList" value="{{c.value}}"> {{c.name}} </ion-select-option>
+  </ion-select>
+
+  
+
+
+  </ion-item>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+    <ion-item class="ion-input-item">
+        <ion-label position="stacked">From Date</ion-label>
+        <ion-input *ngIf="!((platformValue =='browser' || platformValue =='ios') && selectdate==7)" type="text" 
+        placeholder="From Date" [readonly]="selectdate!=7" [(ngModel)]="dateinput.from_date" (click)="openfromdate()">
+      </ion-input>
+      <ion-datetime  *ngIf="(platformValue =='browser' || platformValue =='ios') && selectdate==7" 
+        displayFormat="DD-MMM-YYYY" id="{{dateinput.item_name}}" 
+        [(ngModel)]="dateinput.temp_from_date" (ionChange)="fromDateChanged(dateinput.temp_from_date)">
+      </ion-datetime>
+      <div class="input-buttons-container" >
+   
+          <button class="input-btn float-right"  ion-button icon-only small>
+              <ion-icon name="calendar"></ion-icon>
+          </button>
+          <div  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+          <button class="input-btn float-right"  ion-button icon-only small
+          (click)="dateinput.from_date=null;dateinput.temp_from_date=null">
+            <ion-icon name="close"></ion-icon>
+          </button>
+          </div>
+          
+        </div>
+    </ion-item>
+    <ion-item class="ion-input-item">
+        <ion-label position="stacked">To Date</ion-label>
+        <ion-input *ngIf="!((platformValue =='browser' || platformValue =='ios') && selectdate==7)" type="text" 
+        placeholder="To Date" [readonly]="selectdate!=7" [(ngModel)]="dateinput.to_date" (click)="opentodate()">
+      </ion-input>
+      <ion-datetime *ngIf="(platformValue =='browser' || platformValue =='ios' ) && selectdate==7" 
+        displayFormat="DD-MMM-YYYY" id="{{dateinput.item_name}}" 
+        [(ngModel)]="dateinput.temp_to_date" (ionChange)="toDateChanged(dateinput.temp_to_date)">
+      </ion-datetime>
+      <div class="input-buttons-container" >
+   
+          <button class="input-btn float-right"  ion-button icon-only small>
+              <ion-icon name="calendar"></ion-icon>
+          </button>
+          <div  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+          <button class="input-btn float-right"  ion-button icon-only small
+          (click)="dateinput.to_date=null;dateinput.temp_to_date=null">
+            <ion-icon name="close"></ion-icon>
+          </button>
+          </div>
+          
+        </div>
+    </ion-item>
+
+  <!-- <ion-col class="px-1 py-0" size="6">
+    <div class="input-group">
+
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+          <ion-icon name="calendar"></ion-icon>
+        </button>
+      </div>
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+          <ion-icon name="close" (click)="dateinput.from_date=null;dateinput.temp_from_date=null"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ion-col> -->
+
+  <!-- <ion-col class="px-1 py-0" size="6">
+    <div class="input-group">
+      <ion-input *ngIf="!(platformValue =='browser' && selectdate==7)" type="text" class="input-text"
+        placeholder="To Date" [readonly]="selectdate!=7" [(ngModel)]="dateinput.to_date" (click)="opentodate()">
+      </ion-input>
+      <ion-datetime *ngIf="platformValue =='browser' && selectdate==7" class="input-text form-control browser-date-input date-time-input"
+        displayFormat="DD/MM/YYYY" id="{{dateinput.item_name}}" placeholder="To Date"
+        [(ngModel)]="dateinput.temp_to_date" (ionChange)="toDateChanged(dateinput.temp_to_date)">
+      </ion-datetime>
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+          <ion-icon name="calendar"></ion-icon>
+        </button>
+      </div>
+      <div class="input-group-append">
+        <button class="lov-btn" ion-button icon-only small>
+          <ion-icon name="close" (click)="dateinput.to_date=null;dateinput.temp_to_date=null"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ion-col>
+</ion-row> -->
+
+</div>
+
+<!-- //------------------------------------------------ -->
+
+<div  class="filter-date-sec p-1" *ngIf="dateinput.item_sub_type=='ASON_DATE'">
+  <ion-icon class="heading-icon" name="ios-calendar"></ion-icon>
+       <ion-row>
+         <ion-col size="3">
+            <ion-item class="{{dateinput.css_class}}">
+                <ion-label  class="overflow-visible" position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+            <ion-select id="id" name="dateType" interface="popover" (ionChange)="typeSelected()"
+            [(ngModel)]="dateinput.dateType">
+            <ion-select-option>
+              <</ion-select-option> <ion-select-option>>
+            </ion-select-option>
+            <ion-select-option>=</ion-select-option>
+            <ion-select-option>
+              <=</ion-select-option> <ion-select-option>>=
+            </ion-select-option>
+            <ion-select-option>
+              <>
+            </ion-select-option>
+          </ion-select>
+          </ion-item>
+          </ion-col>
+          <ion-col size="9">
+              <ion-item class="ion-input-item">
+                  <ion-label position="stacked" style="visibility: hidden;">{{dateinput.prompt_name}}</ion-label>
+              <ion-input *ngIf="platformValue !='browser'" type="text"  placeholder="select Date"
+              [(ngModel)]="dateinput.value" (click)="opentodate">
+            </ion-input>
+            <ion-datetime *ngIf="platformValue =='browser'"  displayFormat="DD/MM/YYYY"
+              id="{{dateinput.item_name}}" placeholder="Select Date" [(ngModel)]="dateinput.temp_value"
+              (ionChange)="dateChanged(dateinput.temp_value)">
+            </ion-datetime>
+            <div class="input-buttons-container" >
+   
+                <button class="input-btn 

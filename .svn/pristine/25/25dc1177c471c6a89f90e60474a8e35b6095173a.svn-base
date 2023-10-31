@@ -1,0 +1,19 @@
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-image-uploader',
+  templateUrl: './image-uploader.page.html',
+  styleUrls: ['./image-uploader.page.scss'],
+})
+export class ImageUploaderPage implements OnInit {
+
+  constructor(private router: Router) { }
+
+  ngOnInit() {
+  }
+
+  closePage() {
+    this.router.navigate(['super']);
+  }
+}

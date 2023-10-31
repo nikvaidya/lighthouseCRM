@@ -1,0 +1,26 @@
+<p>
+  attach-file works!
+</p>
+<div>
+  <ion-icon ios="ios-attach" md="md-attach"></ion-icon>
+</div>
+
+
+<!-- <ion-item>
+  <ion-label id="profile_image" color="primary" stacked>Choose File</ion-label>
+  <ion-input  [readonly]='true' id="upload" [(ngModel)]="imageFilePath" (click)="imageFilePath_change()"></ion-input>
+</ion-item> -->
+
+<!-- <ion-item>
+  
+  <ion-input  [readonly]='true' id="upload" [(ngModel)]="imageFilePath" (click)="upload()">
+    <ion-label id="profile_image" color="primary" stacked>Choose File</ion-label>
+  </ion-input>
+</ion-item> -->
+
+<ion-item>
+  
+  <ion-input  [readonly]='true' id="upload" (click)="uplaod2()">
+    <ion-label id="profile_image" color="primary" stacked>Choose File</ion-label>
+  </ion-input>
+</ion-item>

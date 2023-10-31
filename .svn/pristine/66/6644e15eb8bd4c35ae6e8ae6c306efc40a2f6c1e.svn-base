@@ -1,0 +1,72 @@
+<div class="drag-drop-container">
+  <div class="single-box">
+
+    <ion-row class="row">
+      <ion-col size="3" class="main">
+        <p class="column-text">Column Name</p>
+        <div class="container-drop">
+        <div class="each-drop">
+          lorem ipsum
+        </div>
+        <div class="each-drop">
+            lorem ipsum
+          </div>
+          <div class="each-drop">
+              lorem ipsum
+            </div> <div class="each-drop">
+                lorem ipsum
+              </div>
+            </div>
+      </ion-col>
+      <ion-col size="3" class="group1">
+          <p class="column-text">Group 1</p>
+          <div class="container-drop">
+              <div class="each-drop">
+                lorem ipsum
+              </div>
+              <div class="each-drop">
+                  lorem ipsum
+                </div>
+                <div class="each-drop">
+                    lorem ipsum
+                  </div> <div class="each-drop">
+                      lorem ipsum
+                    </div>
+                  </div>
+      </ion-col>
+      <ion-col size="3" class="group2">
+          <p class="column-text">Group 2</p>
+          <div class="container-drop">
+              <div class="each-drop">
+                lorem ipsum
+              </div>
+              <div class="each-drop">
+                  lorem ipsum
+                </div>
+                <div class="each-drop">
+                    lorem ipsum
+                  </div> <div class="each-drop">
+                      lorem ipsum
+                    </div>
+                  </div>
+      </ion-col>
+      <ion-col size="3" class="group3">
+          <p class="column-text">Group 3</p>
+          <div class="container-drop">
+              <div class="each-drop">
+                lorem ipsum
+              </div>
+              <div class="each-drop">
+                  lorem ipsum
+                </div>
+                <div class="each-drop">
+                    lorem ipsum
+                  </div> <div class="each-drop">
+                      lorem ipsum
+                    </div>
+                  </div>
+      </ion-col>
+    </ion-row>
+
+  </div>
+</div>

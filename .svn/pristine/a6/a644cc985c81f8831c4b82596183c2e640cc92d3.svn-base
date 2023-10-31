@@ -1,0 +1,12 @@
+<ion-item class="chat-list" lines="none"  
+
+    >
+    <ion-avatar slot="start"   >
+      <img src="/assets/imgs/defaultUser.png">
+    </ion-avatar>
+    <ion-label>
+      <h2 (click)="buttonClick($event)">John Due</h2>
+      
+    </ion-label>
+    <ion-badge color="success">4</ion-badge>
+  </ion-item>

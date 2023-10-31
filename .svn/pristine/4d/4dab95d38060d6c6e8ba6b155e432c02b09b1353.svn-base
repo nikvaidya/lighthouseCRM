@@ -1,0 +1,23 @@
+// :host {
+//     .app-button {
+//       &__contributors {
+//         border: 1px solid red;
+//       }
+//     }}
+.icon-btn
+{
+   --padding-start: 0.4em;
+    --padding-end: 0.4em;
+    height:1.7em;
+    margin-right: 13px;
+    --ion-color-dark:#0864ae;
+}
+.iconText-btn{
+    border-radius: 11px;
+    font-size: 16px;
+    --padding-end: 7px;
+    --padding-start: 7px;
+    --padding-top: 0px;
+    height: 2em;
+
+}

@@ -1,0 +1,25 @@
+import { Component, OnInit, Input } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { DataService } from 'src/app/services/data.service';
+
+@Component({
+  selector: 'app-video-input',
+  templateUrl: './video-input.component.html',
+  styleUrls: ['./video-input.component.scss'],
+})
+export class VideoInputComponent implements OnInit {
+  @Input() videoInput: any;
+  constructor(public modalCtrl: ModalController, public dataService: DataService) { }
+
+  ngOnInit() { }
+
+  captureVideo() {
+    this.dataService.takeVideo().then(videoRes => {
+      this.videoInput.value = videoRes;
+    })
+  }
+
+  clearImage() {
+    this.videoInput.value = '';
+  }
+}

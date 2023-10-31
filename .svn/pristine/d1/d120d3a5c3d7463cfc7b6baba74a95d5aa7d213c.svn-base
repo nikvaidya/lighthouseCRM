@@ -1,0 +1,392 @@
+<!-- ion-input-item-border position="stacked" -->
+<!-- ion-input-item-fixed  position="fixed"-->
+<!-- null position="floating"-->
+<!-- null position="stacked"-->
+<div *ngIf="dateinput.item_sub_type=='DT' ">
+  <div class="input-group" *ngIf="platformValue == 'android' || platformValue == 'ios'">
+<ion-item class="{{dateinput.css_class}}">
+  <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showDateTimepicker()" [(ngModel)]="dateinput.value"  
+  [readonly]="dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F'))"
+  [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+    (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+    ||dateinput.data_required_flag=='T' 
+    ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+  (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-input>
+  <div class="input-buttons-container" >
+     
+    <button class="input-btn float-right"  ion-button icon-only small>
+        <ion-icon name="calendar"></ion-icon>
+    </button>
+    <div  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+    <button class="input-btn float-right"  ion-button icon-only small
+          (click)="clear()">
+      <ion-icon name="close"></ion-icon>
+    </button>
+    </div>
+    
+  </div>
+</ion-item> 
+</div>
+
+<div  *ngIf="platformValue =='browser'">
+  <ion-item class="{{dateinput.css_class}}">
+    <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+      
+       <ion-datetime  displayFormat="DD-MMM-YYYY HH:mm:ss" id="{{dateinput.item_name}}"
+         [(ngModel)]="val"
+      
+         [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+           (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+           ||dateinput.data_required_flag=='T' 
+           ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+         (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+         (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+         (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+         <div class="input-buttons-container" *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+     
+          <button class="input-btn float-right"  ion-button icon-only small>
+              <ion-icon name="calendar"></ion-icon>
+        </button>
+       
+        <button class="input-btn float-right"   ion-button icon-only small
+        (click)="clear()">
+            <ion-icon name="close"></ion-icon>
+        </button>
+       
+          
+        </div>
+
+  </ion-item>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+ 
+  </div>
+ </div>
+
+</div>
+
+<!-- //////////////////////////////////////////// -->
+<div *ngIf="dateinput.item_sub_type=='T' ">
+  <div  *ngIf="platformValue == 'android' || platformValue == 'ios'">
+    <ion-item class="{{dateinput.css_class}}">
+      <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showtimepicker(event)" [(ngModel)]="dateinput.value"
+    
+  [readonly]="dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F'))"
+  [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+    (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+    ||dateinput.data_required_flag=='T' 
+    ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+  (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-input>
+  <div class="input-buttons-container"  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+     
+    <button class="input-btn float-right"  ion-button icon-only small>
+        <ion-icon name="calendar"></ion-icon>
+  </button>
+  <button class="input-btn float-right"  ion-button icon-only small
+  (click)="clear()">
+      <ion-icon name="close"></ion-icon>
+  </button>
+    
+  </div>
+</ion-item> 
+</div>
+
+<div class="input-group" *ngIf="platformValue =='browser'">
+  <ion-item class="{{dateinput.css_class}}">
+    <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+
+      
+       <ion-datetime  displayFormat="HH:mm:ss" id="{{dateinput.item_name}}"
+          [(ngModel)]="val"
+       
+         [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+           (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+           ||dateinput.data_required_flag=='T' 
+           ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+         (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+         (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+         (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+         <div class="input-buttons-container"  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+     
+          <button class="input-btn float-right"  ion-button icon-only small>
+              <ion-icon name="calendar"></ion-icon>
+        </button>
+        <button class="input-btn float-right"  ion-button icon-only small
+        (click)="clear()">
+            <ion-icon name="close"></ion-icon>
+        </button>
+          
+        </div>
+  
+  
+   </ion-item>
+   <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+ </div>
+
+</div>
+
+<!-- //////////////////////////////////////////////// -->
+<div *ngIf="dateinput.item_sub_type=='D' ">
+  <div *ngIf="platformValue == 'android' || platformValue == 'ios'">
+    <ion-item class="{{dateinput.css_class}}">
+      <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showDatepicker(event)" [(ngModel)]="dateinput.value"
+  
+  [readonly]="dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F'))"
+  [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+    (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+    ||dateinput.data_required_flag=='T' 
+    ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+  (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+  (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-input>
+  <div class="input-buttons-container" *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+     
+    <button class="input-btn float-right"  ion-button icon-only small>
+        <ion-icon name="calendar"></ion-icon>
+  </button>
+  <button class="input-btn float-right"  ion-button icon-only small
+  (click)="clear()">
+      <ion-icon name="close"></ion-icon>
+  </button>
+    
+  </div>
+</ion-item> 
+</div>
+
+<div  *ngIf="platformValue =='browser'">
+  <ion-item class="{{dateinput.css_class}}">
+    <ion-label position="{{dateinput.position}}">{{dateinput.prompt_name}}</ion-label>
+       <ion-datetime  displayFormat="DD-MMM-YYYY" id="{{dateinput.item_name}}"
+          [(ngModel)]="val" 
+         [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+           (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+           ||dateinput.data_required_flag=='T' 
+           ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+         (ionChange)="dateinput.isValid=dateinputName.valid;dateinput.touched=true;onChange()"
+         (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true;"
+         (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+         <div class="input-buttons-container"  *ngIf="dateinput.value && (!(dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F')))) ">
+     
+          <button class="input-btn float-right"  ion-button icon-only small>
+              <ion-icon name="calendar"></ion-icon>
+        </button>
+        <button class="input-btn float-right"  ion-button icon-only small
+        (click)="clear()">
+            <ion-icon name="close"></ion-icon>
+        </button>
+          
+        </div>
+   
+  </ion-item>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+ </div>
+
+</div>
+
+<div class="table-input-container" style="display:none;" *ngIf="dateinput.item_sub_type=='D_T' ">
+  <div class="input-group table-lov-input">
+      
+  <ion-datetime class="table-input"
+    [(ngModel)]="dateinput.value" displayFormat="DD/MM/YYYY"
+    [readonly]="dateinput.item_enable_flag && (!(dateinput.item_enable_flag.indexOf(current_page_parameter.MODE)>-1)||(dateinput.item_enable_flag=='F'))"
+   [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+     (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+     ||dateinput.data_required_flag=='T' 
+     ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+   (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true;"
+   (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+   (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'
+    ></ion-datetime>
+    <div class="input-group-append">
+      <button class="lov-btn"  ion-button icon-only small>
+        
+        <ion-icon name="calendar"></ion-icon>
+      </button>
+    </div>
+    </div>
+    <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+ </div>
+
+<!--   
+<label>{{dateinput.prompt_name}}</label>
+<div *ngIf="dateinput.item_sub_type=='DT' ">
+<div class="input-group" *ngIf="platformValue == 'android' || platformValue == 'ios'">
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showDateTimepicker()" [(ngModel)]="dateinput.value"
+    class="input-text lov-input"  
+   
+    [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+      (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+      ||dateinput.data_required_flag=='T' 
+      ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+    (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'
+    ></ion-input>
+
+    <div class="input-group-append" *ngIf="dateinput.value">
+      <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+        <ion-icon name="close" (click)="clear()"></ion-icon>
+      </button>
+    </div>
+  <div class="input-group-append">
+    <button class="lov-btn" ion-button icon-only small>
+      <ion-icon name="calendar"></ion-icon>
+    </button>
+  </div>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+    {{dateinput.prompt_name}}
+  </div>
+</div>
+<div class="input-group" *ngIf="platformValue =='browser'">
+   <div class="input-group">
+      <ion-datetime class="input-text lov-input form-control browser-date-input date-time-input" displayFormat="DD-MM-YYYY HH:mm:ss" id="{{dateinput.item_name}}"
+         [(ngModel)]="dateinput.value"
+        [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+          (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+          ||dateinput.data_required_flag=='T' 
+          ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+        (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+        (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+        (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+        <div class="input-group-append" *ngIf="dateinput.value">
+          <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+            <ion-icon name="close" (click)="clear()"></ion-icon>
+          </button>
+        </div>
+    <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small>
+        <ion-icon name="calendar"></ion-icon>
+      </button>
+    </div>
+    <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+  </div>
+</div>
+</div>
+
+
+<div *ngIf="dateinput.item_sub_type=='D' ">
+<div class="input-group" *ngIf="platformValue == 'android' || platformValue == 'ios'">
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showDatepicker(event)" [(ngModel)]="dateinput.value"
+    class="input-text lov-input" 
+    [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+      (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+      ||dateinput.data_required_flag=='T' 
+      ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+    (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-input>
+    <div class="input-group-append" *ngIf="dateinput.value">
+      <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+        <ion-icon name="close" (click)="clear()"></ion-icon>
+      </button>
+    </div>
+    <div class="input-group-append">
+    <button class="lov-btn" ion-button icon-only small>
+      <ion-icon name="calendar"></ion-icon>
+    </button>
+  </div>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+    {{dateinput.prompt_name}}
+  </div>
+</div>
+
+
+<div *ngIf="platformValue =='browser'">
+  <div class="input-group">
+    <ion-datetime class="input-text lov-input form-control browser-date-input date-time-input" displayFormat="DD/MM/YYYY"
+      id="{{dateinput.item_name}}"  
+      [(ngModel)]="dateinput.temp_date" (ionChange)="DateChanged(dateinput.temp_date)"
+      [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+        (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||dateinput.data_required_flag=='T' 
+        ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+      (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+      (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+      (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+      <div class="input-group-append" *ngIf="dateinput.temp_date">
+        <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+          <ion-icon name="close" (click)="clear()"></ion-icon>
+        </button>
+      </div>
+      <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small>
+        <ion-icon name="calendar"></ion-icon>
+      </button>
+    </div>
+    <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+  </div>
+</div>
+</div>
+
+
+<div *ngIf="dateinput.item_sub_type=='T' ">
+<div class="input-group" *ngIf="platformValue == 'android' || platformValue == 'ios'">
+  <ion-input type="text" id="{{dateinput.item_name}}" (click)="showtimepicker(event)" 
+    [(ngModel)]="dateinput.value" class="input-text lov-input" 
+    [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+      (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+      ||dateinput.data_required_flag=='T' 
+      ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+    (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+    (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-input>
+    <div class="input-group-append" *ngIf="dateinput">
+      <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+        <ion-icon name="close" (click)="clear()"></ion-icon>
+      </button>
+    </div>
+  <div class="input-group-append">
+    <button class="lov-btn" ion-button icon-only small>
+      <ion-icon name="time"></ion-icon>
+    </button>
+  </div>
+  <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+    {{dateinput.prompt_name}}
+  </div>
+</div>
+
+<div *ngIf="platformValue =='browser'">
+  <div class="input-group">
+    <ion-datetime class="input-text lov-input form-control browser-date-input date-time-input" displayFormat="HH:mm:ss"
+      id="{{dateinput.item_name}}"  [(ngModel)]="dateinput.value"
+      
+      [required]="(current_page_parameter.MODE && (dateinput.data_required_flag && 
+        (dateinput.data_required_flag.indexOf(current_page_parameter.MODE)>-1)) )
+        ||dateinput.data_required_flag=='T' 
+        ||dateinput.prompt_name[dateinput.prompt_name.length -1] =='*'" 
+      (ionChange)="onChange('ionChange');dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+      (ionBlur)="dateinput.isValid=dateinputName.valid;dateinput.touched=true"
+      (ngInit)="dateinput.isValid=dateinputName.valid" #dateinputName='ngModel'></ion-datetime>
+      <div class="input-group-append"  *ngIf="dateinput.value">
+        <button class="lov-btn border-left-0 border-right-0" ion-button icon-only small>
+          <ion-icon name="close" (click)="clear()"></ion-icon>
+        </button>
+      </div>
+      <div class="input-group-append">
+      <button class="lov-btn" ion-button icon-only small>
+        <ion-icon name="time"></ion-icon>
+      </button>
+    </div>
+    <div class="error" *ngIf="dateinputName.hasError('required') && dateinput.touched"> Please Enter
+      {{dateinput.prompt_name}}
+    </div>
+  </div>
+</div>
+</div> -->

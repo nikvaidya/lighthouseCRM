@@ -1,0 +1,64 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import {CdkDragDrop, moveItemInArray, transferArrayItem} from '@angular/cdk/drag-drop';
+
+
+@Component({
+  selector: 'app-frame-drag-drop',
+  templateUrl: './frame-drag-drop.component.html',
+  styleUrls: ['./frame-drag-drop.component.scss'],
+})
+export class FrameDragDropComponent implements OnInit {
+
+  @Input() frame: any = {};
+  @Output() passdataToframetable: EventEmitter<any> = new EventEmitter<any>();
+  @Output() passdataToframeDepen: EventEmitter<any> = new EventEmitter<any>();
+  @Input() wsdp: any = {};
+  @Input() wscp_send_input: any = {};
+
+  itemList:any = [];
+  constructor() { }
+
+
+  ngOnInit() {
+    console.log(this.frame);
+    let theaddata = [];
+    for (let itemGroup of this.frame.Level4) {
+      for (let itemMast of itemGroup.Level5) {
+       
+        if (itemMast.item_visible_flag == 'F' ) { } else {
+          theaddata.push(itemMast.prompt_name);
+        }
+      }
+
+    }
+    this.itemList = theaddata;
+  }
+  /* itemList = [
+    'Get to work',
+    'Pick up groceries',
+    'Go home',
+    'Fall asleep',
+    'Test1',
+    'Test2',
+    'Test3',
+    'Test4',
+  ];
+ */
+  group1 = [];
+  group2 = [];
+  group3 = [];
+
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(event.previousContainer.data,
+                        event.container.data,
+                        event.previousIndex,
+                        event.currentIndex);
+    }
+    console.log("group1", this.group1);
+    console.log("group2", this.group2);
+    console.log("group3", this.group3);
+  }
+}

@@ -1,0 +1,10 @@
+import { NgModule } from '@angular/core';
+import { CustomMinDirective } from './custom-min-max/custom-min';
+import { CustomMaxDirective } from './custom-min-max/custom-max';
+import { OnInitDirective } from './on-init.directive';
+@NgModule({
+	declarations: [CustomMaxDirective, CustomMinDirective, OnInitDirective],
+	imports: [],
+	exports: [CustomMaxDirective, CustomMinDirective, OnInitDirective]
+})
+export class DirectivesModule { }

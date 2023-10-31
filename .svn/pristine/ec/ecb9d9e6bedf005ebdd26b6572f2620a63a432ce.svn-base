@@ -1,0 +1,43 @@
+.my-cal {
+
+        p {
+       
+          color: green;
+       
+        }
+       
+       }
+
+
+
+       @import '../../../mixins';
+.frame-name
+{
+    margin: 0px;
+    font-size: 15px;
+    padding: 2px 5px 2px 10px;
+    margin-top: 12px;
+    &::before
+    {
+        @include before-after;
+        width:5px;
+        height:100%;
+        left:0px;
+        top:0px;
+        
+    }
+}
+.calender-div{
+    background: #ffff;
+    box-shadow: 1px 2px 10px #ddd;
+    margin-bottom: 15px;
+    border-top: 8px solid #ddd;
+    border-radius: 12px;
+    margin-top: -12px;
+
+}
+ion-calender{
+.title {
+    background: #f1f1f1dd;
+}
+}

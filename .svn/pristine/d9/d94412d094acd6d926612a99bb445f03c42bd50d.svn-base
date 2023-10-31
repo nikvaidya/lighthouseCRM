@@ -1,0 +1,26 @@
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-para-text',
+  templateUrl: './para-text.component.html',
+  styleUrls: ['./para-text.component.scss'],
+})
+export class ParaTextComponent implements OnInit {
+  @Input() itemInput: any;
+  @Input() frame_type: any;
+  @Output() emitPass: EventEmitter<any> = new EventEmitter<any>();
+  @Output() emitOnChange: EventEmitter<any> = new EventEmitter<any>();
+
+  constructor() { }
+
+  ngOnInit() { 
+    console.log("paratext",this.itemInput)
+   }
+  itemClick(event) {
+    this.emitPass.emit(this.itemInput);
+  }
+  valueChange(event){
+    this.emitOnChange.emit(this.itemInput);
+  }
+ 
+}

@@ -1,0 +1,30 @@
+.smart-filter-section{
+        .inactive{
+          
+            border: 1px solid #4d5154 ;
+            .class1{
+                color: #4d5154 ;
+            }
+        }
+        .active{
+            background-color: #4990e2 ;
+           
+            .class1{
+                color: #ffff;
+            }
+        }
+        }
+  .smart-filter-section1{
+           
+            .class1{
+               
+                background: #4990e2 ;
+                ion-label{
+                    color: #ffffff ;
+                }
+            }
+            .class2{
+                color: #4d5154;
+                background:  #fff;
+            }
+        }

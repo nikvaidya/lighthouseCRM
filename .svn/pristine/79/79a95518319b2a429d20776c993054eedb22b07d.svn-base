@@ -1,0 +1,6 @@
+<div>
+  <ion-item>
+    <ion-checkbox color="primary" [(ngModel)]="checkBoxVal.checked"
+      (click)="checkBoxVal.isChecked=!checkBoxVal.isChecked;itemClick($event)"></ion-checkbox>
+  </ion-item>
+</div>

@@ -1,0 +1,42 @@
+import { NgModule } from '@angular/core';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+
+const routes: Routes = [
+  {path: '',redirectTo: 'appkey-validation',pathMatch: 'full'},
+  // { path: 'home', loadChildren: './home/home.module#HomePageModule' },
+  { path: 'list', loadChildren: './list/list.module#ListPageModule' },
+  { path: 'super', loadChildren: './pages/super/super.module#SuperPageModule' },
+  { path: 'login', loadChildren: './pages/login/login.module#LoginPageModule' },
+  { path: 'appkey-validation', loadChildren: './pages/appkey-validation/appkey-validation.module#AppkeyValidationPageModule' },
+  { path: 'appkey-collection', loadChildren: './pages/appkey-collection/appkey-collection.module#AppkeyCollectionPageModule' },
+  { path: 'home', loadChildren: './pages/home/home.module#HomePageModule' },
+  { path: 'ChangeServerSettingPage', loadChildren: './pages/change-server-setting/change-server-setting.module#ChangeServerSettingPageModule' },
+  { path: 'entry-list', loadChildren: './pages/entry-list/entry-list.module#EntryListPageModule'},
+  { path: 'multi-level-tab', loadChildren: './pages/multi-level-tab/multi-level-tab.module#MultiLevelTabPageModule'},
+  { path: 'add-to-cart', loadChildren: './pages/add-to-cart/add-to-cart.module#AddToCartPageModule' },
+  { path: 'cart-summary', loadChildren: './pages/cart-summary/cart-summary.module#CartSummaryPageModule' },
+  { path: 'change-password', loadChildren: './pages/change-password/change-password.module#ChangePasswordPageModule' },
+  { path: 'update-app', loadChildren: './pages/update-app/update-app.module#UpdateAPPPageModule' },
+  { path: 'bridge', loadChildren: './pages/bypass/bypass.module#BypassPageModule' },
+  { path: 'appkey-info', loadChildren: './pages/appkey-info/appkey-info.module#AppkeyInfoPageModule' },
+  { path: 'appkey-user-info', loadChildren: './pages/appkey-user-info/appkey-user-info.module#AppkeyUserInfoPageModule' },
+  { path: 'beta-version', loadChildren: './pages/beta-version/beta-version.module#BetaVersionPageModule' },
+  // { path: 'dynamicmodal', loadChildren: './dynamicmodal/dynamicmodal.module#DynamicmodalPageModule' },
+  { path: 'offline-entry-list', loadChildren: './pages/offline-entry-list/offline-entry-list.module#OfflineEntryListPageModule' },
+  { path: 'offline-entry-tabs', loadChildren: './pages/offline-entry-tabs/offline-entry-tabs.module#OfflineEntryTabsPageModule' },
+  { path: 'image-uploader', loadChildren: './pages/image-uploader/image-uploader.module#ImageUploaderPageModule' },
+  // { path: 'partylist', loadChildren: './pages/partylist/partylist.module#PartylistPageModule' },
+ 
+  
+  // { path: 'voice-search', loadChildren: './voice-search/voice-search.module#VoiceSearchPageModule' }
+ 
+
+];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+  ],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }

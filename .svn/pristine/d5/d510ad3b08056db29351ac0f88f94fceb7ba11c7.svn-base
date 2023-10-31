@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <!-- <ion-buttons slot="start" *ngIf="!isModal">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons> -->
+    <ion-button slot="start" (click)="closePage()" fill="clear" icon-only start>
+      <ion-icon name="arrow-back" color="light"></ion-icon>
+    </ion-button>
+    <ion-title>
+      Change Password
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="change-password-container">
+    <ion-item>
+      <ion-label position="fixed">Old Password</ion-label>
+      <ion-input placeholder="" [(ngModel)]="user.oldPassword"></ion-input>
+
+    </ion-item>
+    <ion-item>
+      <ion-label position="fixed">New Password</ion-label>
+      <ion-input placeholder="" [(ngModel)]="user.newPassword"></ion-input>
+
+    </ion-item>
+    <ion-item>
+      <ion-label position="fixed">Confirm Password</ion-label>
+      <ion-input placeholder="" [(ngModel)]="user.cnfPassword"></ion-input>
+
+    </ion-item>
+    <ion-row>
+      <ion-col size="12" text-center>
+        <ion-button shape="round" class="mr-1 globe-btn" color="primary" (click)="changePassword(user)">Save
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </div>
+</ion-content>

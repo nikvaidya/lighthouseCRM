@@ -1,0 +1,35 @@
+<div class="capture-img-container">
+  <ion-label class="form-label">{{videoInput.prompt_name}}</ion-label>
+  <!-- <div *ngIf="!videoInput.value ">
+    <img src="assets/imgs/default-thumbnail.jpg" class="img-input">
+  </div>
+  <div *ngIf="videoInput.value " class="capture-img-container">
+    <img [src]="'data:image/jpeg;base64,'+videoInput.value" class="img-input">
+  </div> -->
+  <div *ngIf="!videoInput.value">
+    <img src="assets/imgs/default-thumbnail.jpg" class="img-input">
+  </div>
+  <div *ngIf="videoInput.value">
+    <video [src]="videoInput.value" style="height: 156px;width: 286px;" controls></video>
+  </div>
+</div>
+
+<div class="mb-2">
+  <div class="img-capture-sec-container">
+    <div class="img-capture-sec d-inline-block">
+      <button  ion-button (click)="captureVideo()" small>
+        <ion-icon name="camera"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec d-inline-block">
+      <button  ion-button (click)="captureVideo()" small>
+        <ion-icon name="images"></ion-icon>
+      </button>
+    </div>
+    <div class="img-capture-sec trash-btn-sec d-inline-block">
+      <button  ion-button (click)="clearImage()" small>
+        <ion-icon name="trash"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>

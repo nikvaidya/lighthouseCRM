@@ -1,0 +1,16 @@
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-frame-group-table',
+  templateUrl: './frame-group-table.component.html',
+  styleUrls: ['./frame-group-table.component.scss'],
+})
+export class FrameGroupTableComponent implements OnInit {
+
+  constructor() {
+console.log("chaitenya")
+   }
+
+  ngOnInit() {}
+
+}
